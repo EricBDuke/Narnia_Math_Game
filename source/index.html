@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1b2440">
+<title>Narnia Math Brawler</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23d9a02a'/%3E%3Ccircle cx='32' cy='34' r='16' fill='%23f3cf6a'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="ui">
+
+  <!-- Aslan narrator bubble (only verified book quotes) -->
+  <div id="aslan" class="hidden"><div class="lion"><svg viewBox="0 0 100 100" aria-label="Aslan"><defs><radialGradient id="mane" cx="50%" cy="55%" r="55%"><stop offset="0" stop-color="#f0a83a"/><stop offset=".7" stop-color="#c0701a"/><stop offset="1" stop-color="#7a400c"/></radialGradient><radialGradient id="face" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#ffe6a0"/><stop offset="1" stop-color="#e8b050"/></radialGradient></defs>
+<g fill="url(#mane)"><ellipse cx="50" cy="50" rx="13" ry="48" transform="rotate(0 50 52)"/><ellipse cx="50" cy="50" rx="13" ry="48" transform="rotate(30 50 52)"/><ellipse cx="50" cy="50" rx="13" ry="48" transform="rotate(60 50 52)"/><ellipse cx="50" cy="50" rx="13" ry="48" transform="rotate(90 50 52)"/><ellipse cx="50" cy="50" rx="13" ry="48" transform="rotate(120 50 52)"/><ellipse cx="50" cy="50" rx="13" ry="48" transform="rotate(150 50 52)"/><ellipse cx="50" cy="50" rx="13" ry="48" transform="rotate(180 50 52)"/><ellipse cx="50" cy="50" rx="13" ry="48" transform="rotate(210 50 52)"/><ellipse cx="50" cy="50" rx="13" ry="48" transform="rotate(240 50 52)"/><ellipse cx="50" cy="50" rx="13" ry="48" transform="rotate(270 50 52)"/><ellipse cx="50" cy="50" rx="13" ry="48" transform="rotate(300 50 52)"/><ellipse cx="50" cy="50" rx="13" ry="48" transform="rotate(330 50 52)"/></g><circle cx="50" cy="54" r="38" fill="url(#mane)"/>
+<ellipse cx="50" cy="56" rx="25" ry="28" fill="url(#face)"/><ellipse cx="33" cy="34" rx="6" ry="6" fill="#e8b050"/><ellipse cx="67" cy="34" rx="6" ry="6" fill="#e8b050"/>
+<ellipse cx="40" cy="50" rx="4" ry="3.2" fill="#3a2410"/><ellipse cx="60" cy="50" rx="4" ry="3.2" fill="#3a2410"/><circle cx="41" cy="49" r="1" fill="#fff"/><circle cx="61" cy="49" r="1" fill="#fff"/>
+<path d="M36 44 q4 -3 8 0 M56 44 q4 -3 8 0" stroke="#8a5a20" stroke-width="1.6" fill="none"/>
+<ellipse cx="50" cy="66" rx="12" ry="9" fill="#fff0c8"/><path d="M44 61 L56 61 L50 67 Z" fill="#4a2a14"/><path d="M50 67 v4 M50 71 q-5 4 -9 1 M50 71 q5 4 9 1" stroke="#4a2a14" stroke-width="1.6" fill="none"/></svg></div><div class="bubble"><div class="who">Aslan</div><div class="q"></div><div class="src"></div></div></div>
+
+  <!-- TITLE / DIFFICULTY -->
+  <section id="s-title" class="screen">
+    <div class="panel title-panel">
+      <h1>Narnia <span>Math Brawler</span></h1>
+      <p class="sub">Solve 10 problems to unlock each battle. Score <b>7 or more</b> to fight.</p>
+      <h3>Difficulty</h3>
+      <div class="seg" id="diff">
+        <button data-v="easy">Easy<small>2-3 digits × 1 digit</small></button>
+        <button data-v="medium">Medium<small>up to 4 digits</small></button>
+        <button data-v="hard">Hard<small>4 digits × 2 digits</small></button>
+        <button data-v="ultimate">Ultimate<small>5 digits × 2 digits</small></button>
+      </div>
+      <h3>Problems</h3>
+      <div class="seg small" id="mode">
+        <button data-v="mixed">Mixed</button><button data-v="mul">Multiplication</button><button data-v="div">Long Division</button>
+      </div>
+      <h3>Fighters</h3>
+      <div class="seg small" id="pool">
+        <button data-v="starters">10 Starters</button><button data-v="all">All 70</button>
+      </div>
+      <button class="big go" id="btn-start">Start the 10 problems</button>
+      <p class="hint" id="title-hint">Computer: type answers and press Enter. iPad: use the number pad.</p>
+    </div>
+  </section>
+
+  <!-- MATH GATE -->
+  <section id="s-math" class="screen hidden">
+    <div class="panel math-panel">
+      <div class="mhead"><div id="m-prog">Problem 1 of 10</div><div id="m-dots"></div><div id="m-score">Score 0</div></div>
+      <div id="m-kind">Multiply</div>
+      <div id="m-problem">123 × 4</div>
+      <div id="m-inputs">
+        <div class="field active" id="f-ans" data-f="ans"><label>Answer</label><div class="val"></div></div>
+        <div class="field" id="f-rem" data-f="rem"><label>Remainder</label><div class="val"></div></div>
+      </div>
+      <div id="m-feedback"></div>
+      <div id="m-hint" class="hidden"></div>
+      <div class="m-actions"><button id="btn-hint" class="ghost">Hint</button><button id="btn-check" class="go">Check</button><button id="btn-next" class="go hidden">Next</button></div>
+    </div>
+    <div id="pad">
+      <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+      <button data-k="back" class="fn">⌫</button><button data-k="0">0</button><button data-k="switch" class="fn" id="pad-switch">R ⇄</button>
+      <button data-k="clear" class="fn wide">Clear</button><button data-k="enter" class="fn go wide">Enter ✓</button>
+    </div>
+  </section>
+
+  <!-- MATH RESULT -->
+  <section id="s-mresult" class="screen hidden">
+    <div class="panel">
+      <h2 id="mr-title">7 / 10</h2>
+      <p id="mr-text"></p>
+      <ul id="mr-list"></ul>
+      <div class="row"><button class="big go" id="btn-to-select">Choose your fighter</button><button class="big ghost" id="btn-retry-math">Try 10 new problems</button></div>
+    </div>
+  </section>
+
+  <!-- FIGHTER + ARENA SELECT -->
+  <section id="s-select" class="screen hidden">
+    <div class="sel-left panel">
+      <div class="sel-head"><h2>Choose your fighter</h2><div class="seg small" id="sel-book"></div></div>
+      <div id="grid"></div>
+    </div>
+    <div class="sel-right">
+      <div class="panel sel-info">
+        <h2 id="si-name">Peter</h2><div id="si-book"></div><p id="si-bio"></p>
+        <table id="si-moves"></table>
+      </div>
+      <div class="panel sel-arena">
+        <h3>Arena</h3>
+        <div class="seg small wrap" id="arena-pick"></div>
+        <button class="big go" id="btn-fight">FIGHT!</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- HUD -->
+  <section id="s-hud" class="hidden">
+    <div id="hud-me" class="hudbox"><div class="portrait"></div><div class="info"><div class="name"></div><div class="bar hp"><i></i></div><div class="bar pw"><i></i><span>POWER</span></div><div class="lives"></div></div></div>
+    <div id="hud-top"><button id="btn-pause" aria-label="Pause">❚❚</button><div id="hud-foes"></div></div>
+    <div id="movelist" class="hudbox"></div>
+    <div id="banner"></div>
+    <div id="toast"></div>
+    <div id="touch" class="hidden">
+      <div id="stick"><div class="knob"></div></div>
+      <div id="tbtns"></div>
+    </div>
+    <div id="cam-hint">Drag to turn the camera</div>
+  </section>
+
+  <section id="s-pause" class="screen hidden"><div class="panel"><h2>Paused</h2>
+    <div class="col"><button class="big go" id="btn-resume">Resume</button><button class="big ghost" id="btn-moves">Move list</button><button class="big ghost" id="btn-quit">Quit round</button><button class="big ghost" id="btn-mute">Sound: On</button></div></div></section>
+
+  <section id="s-moves" class="screen hidden"><div class="panel"><h2>Move list</h2><table id="ml-table"></table><p class="hint">Computer: WASD/arrows move · Space jump · Shift+Space high jump · Q/E or mouse-drag turn camera · mouse wheel zoom · Tab close</p><button class="big go" id="btn-moves-close">Close</button></div></section>
+
+  <section id="s-end" class="screen hidden"><div class="panel"><h2 id="end-title">Victory!</h2><p id="end-text"></p><div class="row"><button class="big go" id="btn-next-round">Next round: 10 problems</button><button class="big ghost" id="btn-menu">Change difficulty</button></div></div></section>
+
+  <div id="rotate" class="hidden">Turn your iPad sideways to play</div>
+  <div id="loading">Loading Narnia…</div>
+</div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
