@@ -90,6 +90,8 @@ export class AIController {
     inp.mx = Math.max(-1, Math.min(1, inp.mx));
     // never walk off a ledge by accident
     if (f.onGround && f.surf && inp.my >= 0 && !platformMode) { const edge = inp.mx > 0 ? f.surf.x1 - f.pos.x : f.pos.x - f.surf.x0; if (inp.mx !== 0 && edge < 1.0 && !(dy < -2.5 && Math.random() < 0.002)) inp.mx = 0; }
+    // signature: bots use it too when charged and a foe is close enough for it to land (a short, level-dependent hesitation)
+    if (f.sigMeter >= 100 && f.sig && !world.cine && ad < 7.5 && Math.abs(dy) < 3.2 && Math.random() < dt * (1.2 + (1 - L.react) * 3)) { inp.actions.push('signature'); return; }
     if (A.cd <= 0 && ad < A.wantDist + 1.8 && Math.abs(dy) < 2.2 && (ad < 0.6 || sgn(dx) === f.face || Math.abs(inp.mx) < 0.3)) {
       A.cd = L.cd[0] + Math.random() * (L.cd[1] - L.cd[0]); const r = Math.random(); let a;
       if (f.power >= 100 && Math.random() < 0.7) a = 'power'; else if (r < 0.4) a = 'main'; else if (r < 0.62) a = 'combo1'; else if (r < 0.84) a = 'combo2'; else a = 'flying';

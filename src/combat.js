@@ -6,12 +6,14 @@ import { makeBillboard, animateBillboard } from './sprites.js';
 import { buildMove, SWING, fxColor } from './moves.js';
 import { sfx } from './audio.js';
 import { TEX } from './fx.js';
+import { sigMove, windupFx, burstFx, sigSound } from './signature.js';
 
 export const SLOT_INFO = {
   main:   { label: 'Main Attack', key: 'J', icon: '⚔', touch: 'Sword' },
   combo1: { label: 'Combo 1', key: 'K', icon: '⚔²', touch: '2 slash' },
   combo2: { label: 'Combo 2', key: 'L', icon: '⚔³', touch: '3 slash' },
   power:  { label: 'Power Move', key: 'I', icon: '★', touch: 'Star' },
+  signature: { label: 'SIGNATURE', key: 'P', icon: '✦', touch: 'Glow' },
   flying: { label: 'Jump / Flying Attack', key: 'U', icon: '🪽', touch: 'Wing' },
   block:  { label: 'Block / Dodge', key: 'O', icon: '🛡', touch: 'Shield' },
   recover:{ label: 'Recover', key: 'R', icon: '↻', touch: 'Circle' },
@@ -27,7 +29,7 @@ export const KB_SCALE = 0.9, KB_GROWTH = 60; // knockback tuning: lower scale/gr
 export class World {
   constructor(scene, arena, fx, opts = {}) {
     this.scene = scene; this.arena = arena; this.fx = fx; this.opts = opts; this.fighters = []; this.projectiles = []; this.events = []; this.time = 0;
-    this.freeze = 0; this.shake = 0; this.punch = 0; this.flashScreen = 0; this.kick = { x: 0, y: 0 }; this.focus = null; this.focusT = 0; arena.fx = fx;
+    this.freeze = 0; this.shake = 0; this.punch = 0; this.flashScreen = 0; this.kick = { x: 0, y: 0 }; this.focus = null; this.focusT = 0; this.cine = null; arena.fx = fx;
   }
   emit(type, data) { this.events.push({ type, ...data }); }
   addShake(v) { this.shake = Math.min(1.6, Math.max(this.shake, v)); }
@@ -35,6 +37,7 @@ export class World {
   surfaceBelow(x, y, r = 0.3) { let best = null; for (const s of this.arena.surfaces) if (x > s.x0 - r && x < s.x1 + r && s.y <= y + 0.15 && (!best || s.y > best.y)) best = s; return best; }
   update(dt) {
     if (this.freeze > 0) { this.freeze -= dt; return; }
+    if (this.cine) { this.updateCine(dt); return; }
     this.time += dt; this.arena.update(this.time, dt);
     this.shake = Math.max(0, this.shake - dt * 3.2); this.punch = Math.max(0, this.punch - dt * 2.4); this.flashScreen = Math.max(0, this.flashScreen - dt * 7);
     for (const f of this.fighters) f.update(dt, this);
@@ -46,12 +49,22 @@ export class World {
     for (const p of this.projectiles) p.update(dt, this);
     this.projectiles = this.projectiles.filter(p => !p.done);
   }
+  // SIGNATURE cinematic: everyone else freezes while the user powers up (zoom, banner, effect); then the strike plays in real time
+  startCine(f, def) {
+    this.cine = { f, def, t: 0, dur: 0.95 }; this.focus = f; this.focusT = this.cine.dur + 0.55; this.punch = Math.max(this.punch, 0.6); this.flashScreen = 0.35;
+    sigSound(f.sig, 'wind'); this.emit('signature', { f, def: f.sig });
+  }
+  updateCine(dt) {
+    const c = this.cine; c.t += dt; this.shake = Math.max(0, this.shake - dt * 3.2); this.flashScreen = Math.max(0, this.flashScreen - dt * 5); this.arena.update(this.time, dt);
+    for (const f of this.fighters) { if (f === c.f) f.sigWindup(dt, Math.min(1, c.t / c.dur), this); else if (!f.dead) f.render(0); }
+    if (c.t >= c.dur) { this.cine = null; c.f.beginSigStrike(this); }
+  }
   clearScene() { for (const p of this.projectiles) p.dispose(); this.projectiles = []; }
 }
 
 class Projectile {
   constructor(world, owner, x, y, vx, vy, o) {
-    Object.assign(this, { world, owner, vx, vy, dmg: o.dmg, kb: o.kb, ang: o.ang ?? 12, life: o.life || 1.3, big: o.big, style: o.style, color: o.color, done: false, grav: o.style === 'rock' ? 9 : 0, radius: 0.5, z: owner.pos.z });
+    Object.assign(this, { world, owner, vx, vy, sig: o.sig, dmg: o.dmg, kb: o.kb, ang: o.ang ?? 12, life: o.life || 1.3, big: o.big, style: o.style, color: o.color, done: false, grav: o.style === 'rock' ? 9 : 0, radius: 0.5, z: owner.pos.z });
     this.hit = new Set(); this.group = new THREE.Group(); this.group.position.set(x, y, this.z); world.scene.add(this.group); this.x = x; this.y = y;
     const st = o.style; let mesh;
     if (st === 'arrow') { mesh = new THREE.Group(); const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.2, 5), new THREE.MeshStandardMaterial({ color: 0xe8d8b0 })); sh.rotation.z = Math.PI / 2; const tip = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.28, 6), new THREE.MeshStandardMaterial({ color: 0xc8d0d8, metalness: 0.8, roughness: 0.3 })); tip.rotation.z = -Math.PI / 2; tip.position.x = 0.7; mesh.add(sh, tip); }
@@ -68,7 +81,7 @@ class Projectile {
     for (const f of world.fighters) {
       if (f === this.owner || f.dead || f.state === 'ko' || this.hit.has(f)) continue;
       if (Math.abs(f.pos.x - this.x) < f.radius + this.radius && this.y > f.pos.y - 0.2 && this.y < f.pos.y + f.height + 0.2) {
-        if (f.takeHit(this.owner, { dmg: this.dmg, kb: this.kb, ang: this.ang, dir: sgn(this.vx), big: this.big, fx: 'proj', color: this.color }, world)) { this.hit.add(f); this.life = 0; world.fx.burstDir(this.x, this.y, this.z, sgn(this.vx), 0.3, 10, this.color, 9, 0.28, 0.4); break; }
+        if (f.takeHit(this.owner, { dmg: this.dmg, kb: this.kb, ang: this.ang, dir: sgn(this.vx), big: this.big, fx: 'proj', color: this.color, sig: this.sig, pierce: this.sig }, world)) { this.hit.add(f); this.life = 0; world.fx.burstDir(this.x, this.y, this.z, sgn(this.vx), 0.3, 10, this.color, 9, 0.28, 0.4); break; }
       }
     }
     const B = world.arena.blast; if (this.life <= 0 || this.x < B.l || this.x > B.r || this.y > B.t + 6 || this.y < B.b - 4) this.dispose();
@@ -85,6 +98,7 @@ export class Fighter {
     this.weight = (big ? 1.35 : cfg.body === 'critter' ? 0.82 : quad ? 1.15 : cfg.body === 'bird' ? 0.85 : cfg.variant?.includes('child') ? 0.88 : 1) * (jumbo ? 1.3 : 1) * (opts.hpMul || 1);
     if (jumbo) this.weight *= 1.3;
     this.speed = jumbo ? 5.0 : big ? 6.2 : cfg.body === 'critter' ? 8.4 : quad ? 9.2 : cfg.body === 'bird' ? 8.2 : 7.6;
+    this.sig = cfg.sig || null; this.sigMeter = 0; this.sigArmor = false; this.sigWind = 0; this.sigFx = 0; this.sigReadyCue = false; this.sigDodgeCD = 0;
     this.dmgMul = opts.dmgMul || 1; this.lives = opts.lives; this.maxLives = opts.lives; this.power = opts.power || 0;
     this.pct = 0; this.pos = new THREE.Vector3(); this.vx = 0; this.vy = 0; this.face = 1; this.yaw = Math.PI / 2 - 0.3;
     this.state = 'idle'; this.stateT = 0; this.move = null; this.onGround = false; this.surf = null; this.jumpsLeft = 1; this.recoverUsed = false; this.recT = 0; this.dropT = 0; this.ledgeT = 0; this.ledgeCD = 0;
@@ -120,6 +134,12 @@ export class Fighter {
       if (this.jumpsLeft > 0) { this.jumpsLeft--; this.vy = a === 'high' ? PHYS.AIRHIGH : PHYS.AIRJUMP; this.state = 'air'; sfx.jump(); world.fx.groundRing(this.pos.x, this.pos.y, this.pos.z, 2.2, this.fxc, 0.3); world.fx.spark(this.pos.x, this.pos.y + 0.2, this.pos.z, 6, this.fxc, 4, 0.18, 0.3, 4); return true; }
       return false;
     }
+    if (a === 'signature') {
+      if (!this.sig) return false; if (this.sigMeter < 100) { if (this.isPlayer) world.emit('toast', { text: 'Signature meter not full yet!' }); return false; } if (world.cine || this.stunT > 0) return false;
+      this.sigMeter = 0; this.sigUses = (this.sigUses || 0) + 1; this.sigReadyCue = false; this.sigArmor = true; this.move = null; this.state = 'sigwind'; this.stateT = 0; this.vx = 0; if (this.onGround) this.vy = 0; this.blocking = false;
+      const tgt = this.nearestEnemy(12, true); if (tgt && Math.abs(tgt.pos.x - this.pos.x) > 0.3) this.face = sgn(tgt.pos.x - this.pos.x);
+      world.startCine(this, this.sig); return true;
+    }
     let slot = a, isPower = false;
     if (a === 'power') { if (this.power < 100) { if (this.isPlayer) world.emit('toast', { text: 'Power meter not full yet!' }); return false; } isPower = true; this.power = 0; slot = 'power'; sfx.power(); world.emit('power', { f: this }); }
     if (a === 'main' && !this.onGround) slot = 'flying';
@@ -130,6 +150,13 @@ export class Fighter {
     else sfx.whoosh(isPower ? 1.5 : 1);
     world.emit('move', { f: this, def });
     return true;
+  }
+  sigWindup(dt, p, world) { this.sigWind = p; this.animT += dt; if (!this.onGround) { this.vy = 0; } windupFx(world, this, this.sig, p, dt); this.render(dt); }
+  beginSigStrike(world) {
+    const d = this.sig, def = this.sigDefMove ||= sigMove(d);
+    this.move = { def, t: 0, fired: new Set(), hitSets: def.events.map(() => new Set()), lungeVx: 0, lungeUntil: -1, stream: null, leapHit: new Set(), slot: 'signature' }; this.state = 'attack'; this.stateT = 0; this.sigWind = 0; this.sigFx = 1;
+    this.sigArmor = true; this.invuln = Math.max(this.invuln, 0); world.addShake(1.3); world.punch = Math.max(world.punch, 0.9); world.flashScreen = 0.4; world.hitPause(0.05);
+    burstFx(world, this, d); sigSound(d, 'hit'); world.emit('move', { f: this, def });
   }
   recover(world) {
     if (this.state === 'down' && this.stateT > 0.1) { this.getUp(world, true); return true; }
@@ -151,15 +178,18 @@ export class Fighter {
   climbLedge(world) { const s = this.ledgeSurf; if (!s) { this.state = 'air'; return; } const left = this.ledgeSide < 0; this.pos.x = left ? s.x0 + this.radius * 1.2 : s.x1 - this.radius * 1.2; this.pos.y = s.y; this.vx = this.vy = 0; this.state = 'idle'; this.onGround = true; this.surf = s; this.invuln = Math.max(this.invuln, 0.5); this.ledgeCD = 0.7; world.fx.dustPuff(this.pos.x, this.pos.y, this.pos.z, 3); }
   // ---------- being hit ----------
   takeHit(src, h, world) {
-    if (this.dead || this.state === 'ko' || this.invuln > 0 || this.dodgeT > 0) return false;
+    if (this.dead || this.state === 'ko' || this.sigArmor) return false; // signature: super armor + invulnerable from the first frame of the cinematic to the end of the strike
+    if (this.invuln > 0) return false;
+    if (this.dodgeT > 0) { if (this.sigDodgeCD <= 0 && src && src !== this) { this.sigDodgeCD = 0.5; this.addSig(9); } return false; }
     if (this.state === 'ledge') { this.state = 'air'; }
     let dmg = h.dmg * (src?.dmgMul || 1); const blocked = this.blocking && this.hitstun <= 0 && this.stunT <= 0 && !h.pierce;
     const dir = h.dir, cx = this.pos.x, cy = this.center + (Math.random() - 0.5) * this.height * 0.3, cz = this.pos.z;
     if (blocked) {
-      dmg *= 0.15; this.pct += dmg; this.vx += dir * h.kb * 0.35; sfx.block(); world.fx.spark(cx - dir * this.radius * 0.5, cy, cz, 8, 0x9ac8ff, 7, 0.22, 0.3); world.fx.flash(cx - dir * this.radius * 0.5, cy, cz, 1.4, 0x9ac8ff, 0.18); this.power = Math.min(100, this.power + dmg * 2 + 1.5); this.flash = 0.08; this.lastHitBy = src; this.lastHitAt = world.time;
+      this.addSig(4 + dmg * 0.7); if (src && src !== this) src.addSig(2.5); dmg *= 0.15; this.pct += dmg; this.vx += dir * h.kb * 0.35; sfx.block(); world.fx.spark(cx - dir * this.radius * 0.5, cy, cz, 8, 0x9ac8ff, 7, 0.22, 0.3); world.fx.flash(cx - dir * this.radius * 0.5, cy, cz, 1.4, 0x9ac8ff, 0.18); this.power = Math.min(100, this.power + dmg * 2 + 1.5); this.flash = 0.08; this.lastHitBy = src; this.lastHitAt = world.time;
       if (src) { src.power = Math.min(100, src.power + 1); } world.hitPause(0.04); return true;
     }
-    this.pct += dmg; let spd = Math.min(56, (h.kb * KB_SCALE * (1 + this.pct / KB_GROWTH)) / this.weight); if (h.kb <= 0) spd = 0;
+    this.pct += dmg; if (!h.sig) { this.addSig(dmg * 2.7); if (src && src !== this) src.addSig(dmg * 3.4 + Math.min(10, Math.max(0, (src.comboHits || 0) - 1) * 2)); }
+    let spd = Math.min(56, (h.kb * KB_SCALE * (1 + this.pct / KB_GROWTH)) / this.weight); if (h.kb <= 0) spd = 0;
     const ang = (h.ang ?? 30) * rad; let vx, vy;
     if (h.radial) { const dx = cx - h.ox, dy = this.center - h.oy, L = Math.hypot(dx, dy) || 1; const rx = dx / L, ry = dy / L; const k = Math.max(0.35, Math.cos(ang)); vx = (rx * 0.65 + (rx < 0 ? -1 : 1) * 0.35) * spd * 1.0; vy = (Math.max(0.15, ry) * 0.5 + Math.sin(ang) * 0.5) * spd; }
     else { vx = Math.cos(ang) * dir * spd; vy = Math.sin(ang) * spd; }
@@ -175,27 +205,31 @@ export class Fighter {
     world.fx.burstDir(cx, cy, cz, dir, 0.4, big ? 12 : 5, 0xffffff, big ? 14 : 9, 0.2, 0.3, 0.45);
     world.fx.flash(cx - dir * 0.2, cy, cz, big ? 2.9 : 2.2, h.big ? 0xfff0c8 : col, big ? 0.2 : 0.16);
     if (big) world.fx.shock(cx, cy, cz, h.big ? 5.5 : 3.6, col, 0.3);
+    if (h.sig) { world.flashScreen = Math.max(world.flashScreen, 0.4); world.fx.shock(cx, cy, cz, 8, col, 0.5); world.fx.flash(cx, cy, cz, 5, 0xffffff, 0.3); world.fx.spark(cx, cy, cz, 26, col, 14, 0.28, 0.7); }
     if (h.big) { world.flashScreen = 0.3; sfx.bigHit(); } else if (h.fin) sfx.hit(14); else if (h.fx === 'proj') sfx.hit(6); else sfx.hit(dmg);
     if (['slash', 'slashUp', 'thrust', 'smash', 'sweep'].includes(h.fx) && src && /sword|rapier|dagger|scimitar|spear|axe/.test(src.cfg.weapon)) sfx.clang(0.5 + (big ? 0.5 : 0));
-    world.addShake(h.big ? 1.1 : h.fin ? 0.6 : Math.min(0.35, 0.08 + dmg * 0.02)); if (h.fin || h.big) world.punch = Math.max(world.punch, h.big ? 1 : 0.55);
-    world.hitPause(h.big ? 0.16 : h.fin ? 0.09 : Math.min(0.06, 0.02 + dmg * 0.004)); world.kick = { x: dir * (h.big ? 1.2 : h.fin ? 0.6 : 0.2), y: 0.1 };
+    // SCREEN SHAKE / camera kick only on huge moments: signature, power-move finishers, and heavy hits (big knockback, or a strong hit on a high damage %). Normal hits and combos keep hit-pause + sparks only.
+    const heavy = !!h.sig || (src?.move?.slot === 'power' && (h.big || h.fin)) || spd >= 30 || (this.pct >= 100 && spd >= 20);
+    if (heavy) { world.addShake(h.sig ? 1.4 : h.big ? 1.1 : 0.7); world.punch = Math.max(world.punch, h.sig || h.big ? 1 : 0.45); world.kick = { x: dir * (h.sig || h.big ? 1.2 : 0.7), y: 0.12 }; }
+    world.hitPause(h.sig ? 0.18 : h.big ? 0.16 : h.fin ? 0.09 : Math.min(0.06, 0.02 + dmg * 0.004));
     // ---- per-move flavour: combo1 = crisp cut, combo2 = heavy crunch, power = finishing blast (each with its own look, shake, hit-pause and sound) ----
     const slot = src?.move?.slot;
     if (slot === 'combo1') {
       world.fx.burstDir(cx, cy, cz, dir, 0.25, 10, 0xffffff, 16, 0.16, 0.22, 0.4); world.fx.spark(cx, cy, cz, 10, col, 11, 0.16, 0.4); world.fx.flash(cx, cy, cz, 1.6, 0xffffff, 0.1);
-      sfx.comboA(); world.addShake(0.3); world.hitPause(0.07);
+      sfx.comboA(); world.hitPause(0.07);
     } else if (slot === 'combo2') {
       world.fx.shock(cx, cy, cz, 3.6, col, 0.28); world.fx.burstDir(cx, cy, cz, dir, 0.7, 16, col, 13, 0.24, 0.3, 0.5); world.fx.spark(cx, cy, cz, 16, 0xffe9b0, 9, 0.2, 0.5); world.fx.dustPuff(cx, this.pos.y, cz, 6);
-      sfx.comboB(); world.addShake(0.55); world.hitPause(0.1); world.kick = { x: dir * 0.7, y: 0.12 };
+      sfx.comboB(); world.hitPause(0.1);
     } else if (slot === 'power') {
       world.fx.shock(cx, cy, cz, 6.5, col, 0.4); world.fx.groundRing(cx, this.pos.y, cz, 6, col, 0.5); world.fx.glow(cx, cy, cz, 4.5, 0xfff0c8, 0.3); world.fx.spark(cx, cy, cz, 30, col, 13, 0.24, 0.65); world.fx.burstDir(cx, cy, cz, dir, 0.9, 20, 0xffffff, 17, 0.26, 0.3, 0.5);
-      sfx.comboC(); world.addShake(0.95); world.punch = Math.max(world.punch, 0.55); world.hitPause(0.15); world.flashScreen = Math.max(world.flashScreen, 0.14); world.kick = { x: dir * 1.1, y: 0.15 };
+      sfx.comboC(); world.hitPause(0.15); world.flashScreen = Math.max(world.flashScreen, 0.14); if (h.big || h.fin) world.addShake(0.9);
     }
     if (src?.comboHits > 1) sfx.combo(Math.min(src.comboHits, 9));
     world.emit('hit', { f: this, by: src, dmg, big });
     return true;
   }
-  stunBy(src, t, world) { if (this.dead || this.state === 'ko' || this.invuln > 0) return; this.stunT = t; this.vx = 0; setStone(this.rig, true, 0xb0e4f4); world.emit('stun', { f: this, by: src }); }
+  addSig(v) { if (!this.sig || this.sigArmor || this.dead) return; this.sigMeter = Math.min(100, this.sigMeter + v); if (this.sigMeter >= 100 && !this.sigReadyCue) { this.sigReadyCue = true; this.sigFills = (this.sigFills || 0) + 1; if (this.isPlayer) sfx.sigReady(); this.world.emit('sigReady', { f: this }); } }
+  stunBy(src, t, world) { if (this.dead || this.state === 'ko' || this.invuln > 0 || this.sigArmor) return; this.stunT = t; this.vx = 0; setStone(this.rig, true, 0xb0e4f4); world.emit('stun', { f: this, by: src }); }
   // ---------- running a move's timeline ----------
   runMove(dt, world) {
     const m = this.move, d = m.def, prev = m.t; m.t += dt; const fx = world.fx, f = this.face, cx = () => this.pos.x, cy = () => this.center;
@@ -210,6 +244,7 @@ export class Fighter {
         case 'beam': this.beam(e, world); break;
         case 'heal': this.pct = Math.max(0, this.pct - e.amt); fx.spark(cx(), cy(), this.pos.z, 24, 0x9affb0, 4, 0.25, 0.9, -3); fx.groundRing(cx(), this.pos.y, this.pos.z, 4, 0x9affb0, 0.7); fx.glow(cx(), cy(), this.pos.z, 5, 0x9affb0, 0.6); sfx.heal(); world.emit('heal', { f: this }); break;
         case 'stream': m.stream = { from: e.t, to: e.t + e.dur, range: e.range, dps: e.dps, big: e.big, nextHit: 0 }; sfx.fire(); break;
+        case 'drop': this.vy = -26; this.vx *= 0.3; fx.trail(this.pos.x, this.center, this.pos.z, d.color, 1, 0.4, 6); break;
         case 'vfx': if (e.name === 'zoom') { world.punch = Math.max(world.punch, 0.9); world.flashScreen = 0.25; world.focus = this; world.focusT = 0.7; fx.shock(cx(), cy(), this.pos.z, 6, d.color, 0.45); fx.glow(cx(), cy(), this.pos.z, 4, d.color, 0.45); sfx.roar(1); } break;
       }
     });
@@ -220,7 +255,7 @@ export class Fighter {
       const S = m.stream, mx = this.pos.x + f * 0.6, my = this.pos.y + this.height * 0.72;
       for (let i = 0; i < 3; i++) { const sp = 8 + Math.random() * 5; fx.add.emit(mx, my, this.pos.z, f * sp * (S.range / 5), (Math.random() - 0.5) * 3 + 0.5, (Math.random() - .5), ...[1, 0.5 + Math.random() * 0.4, 0.1], 0.9, 0.5 + Math.random() * 0.6, 0.45 + Math.random() * 0.2, 0, 0.8, 1.5); }
       if (m.t >= S.nextHit) { S.nextHit = m.t + 0.12; for (const o of world.fighters) { if (o === this || o.dead || o.state === 'ko') continue; const dx = (o.pos.x - this.pos.x) * f; if (dx > -0.3 && dx < S.range + o.radius && Math.abs(o.center - my) < 1.6) o.takeHit(this, { dmg: S.dps * 0.12, kb: 2.6, ang: 18, dir: f, color: 0xff8a30, fx: 'proj' }, world); } }
-      world.addShake(0.15);
+      if (S.big) world.addShake(0.2);
     }
     // flying attack: dive and slam
     if (d.leap) {
@@ -233,8 +268,8 @@ export class Fighter {
     }
     if (m.t >= d.dur) this.endMove();
   }
-  endMove() { this.move = null; this.lunging = false; this.state = this.onGround ? 'idle' : 'air'; }
-  slam(world, d) { const fx = world.fx; fx.dustPuff(this.pos.x, this.pos.y, this.pos.z, 10); fx.groundRing(this.pos.x, this.pos.y, this.pos.z, 6, d.color, 0.5); fx.shock(this.pos.x, this.pos.y + 0.5, this.pos.z, 5, d.color, 0.35); fx.spark(this.pos.x, this.pos.y + 0.2, this.pos.z, 16, d.color, 9, 0.25, 0.5); sfx.thud(); world.addShake(0.45); world.hitPause(0.05);
+  endMove() { if (this.sigArmor) { this.sigArmor = false; this.sigFx = 0; this.invuln = Math.max(this.invuln, 0.25); } this.move = null; this.lunging = false; this.state = this.onGround ? 'idle' : 'air'; }
+  slam(world, d) { const fx = world.fx; fx.dustPuff(this.pos.x, this.pos.y, this.pos.z, 10); fx.groundRing(this.pos.x, this.pos.y, this.pos.z, 6, d.color, 0.5); fx.shock(this.pos.x, this.pos.y + 0.5, this.pos.z, 5, d.color, 0.35); fx.spark(this.pos.x, this.pos.y + 0.2, this.pos.z, 16, d.color, 9, 0.25, 0.5); sfx.thud(); world.hitPause(0.05);
     for (const o of world.fighters) if (o !== this && !o.dead && o.state !== 'ko' && Math.abs(o.pos.x - this.pos.x) < 3.4 + o.radius && Math.abs(o.pos.y - this.pos.y) < 2) o.takeHit(this, { dmg: 7, kb: 8.5, ang: 55, dir: sgn(o.pos.x - this.pos.x), radial: true, ox: this.pos.x, oy: this.center, fin: true, fx: 'burst' }, world); }
   // melee hitbox event
   strike(e, set, world) {
@@ -248,7 +283,7 @@ export class Fighter {
     { const slot = this.move.slot; // distinct trails per move: thin white cut / doubled gold arc / huge double crescent
       if (slot === 'combo1') fx.swoosh(this.pos.x + f * 0.35, cyv + 0.15, this.pos.z + 0.04, f, Math.max(1.4, e.range * sw[2]), sw[0] - 18, sw[1] - 10, 0xffffff, 0.13, 0.16);
       else if (slot === 'combo2') { fx.swoosh(this.pos.x + f * 0.3, cyv - 0.2, this.pos.z + 0.04, f, Math.max(1.6, e.range * sw[2] * 1.2), sw[0] + 22, sw[1] + 14, 0xffe0a0, 0.2, 0.35); fx.swoosh(this.pos.x + f * 0.3, cyv + 0.2, this.pos.z + 0.06, f, Math.max(1.4, e.range * sw[2]), sw[0] - 15, sw[1] - 8, color, 0.16, 0.25); sfx.whoosh(1.2); }
-      else if (slot === 'power') { fx.swoosh(this.pos.x + f * 0.3, cyv, this.pos.z + 0.08, f, Math.max(2.2, e.range * sw[2] * 1.5), sw[0] + 8, sw[1] + 8, 0xfff0c8, 0.26, 0.6); world.addShake(0.35); sfx.whoosh(1.6); } }
+      else if (slot === 'power') { fx.swoosh(this.pos.x + f * 0.3, cyv, this.pos.z + 0.08, f, Math.max(2.2, e.range * sw[2] * 1.5), sw[0] + 8, sw[1] + 8, 0xfff0c8, 0.26, 0.6); sfx.whoosh(1.6); } }
     if (e.lunge) { this.move.lungeVx = f * e.lunge * 2.2; this.move.lungeUntil = this.move.t + 0.14; }
     if (e.rise) { this.vy = Math.max(this.vy, e.rise * 2.2); this.onGround = false; this.surf = null; }
     if (e.fx === 'thrust') fx.burstDir(this.pos.x + f * 0.7, this.center, this.pos.z, f, 0, 5, color, 8, 0.2, 0.3, 0.2);
@@ -259,7 +294,7 @@ export class Fighter {
       const all = e.arc === 'all'; const fwd = dx * f;
       if (Math.abs(dy) > reachY + (e.rise ? 0.6 : 0)) continue;
       if (all ? Math.abs(dx) > e.range + o.radius : (fwd < -o.radius * 0.6 - 0.15 || fwd > e.range + o.radius)) continue;
-      const hit = o.takeHit(this, { dmg: e.dmg * (pw ? 1.0 : 1), kb: e.kb, ang: e.ang, dir: all ? (sgn(dx) || f) : f, fin: e.fin, big: e.big, fx: e.fx, radial: all && e.fin, ox: this.pos.x, oy: this.center, color }, world);
+      const hit = o.takeHit(this, { dmg: e.dmg * (pw ? 1.0 : 1), kb: e.kb, ang: e.ang, dir: all ? (sgn(dx) || f) : f, fin: e.fin, big: e.big, fx: e.fx, radial: all && e.fin, ox: this.pos.x, oy: this.center, color, sig: e.sig, pierce: e.pierce }, world);
       if (hit) { set.add(o); any++; }
     }
     return any;
@@ -267,11 +302,11 @@ export class Fighter {
   pulse(e, set, world) {
     const fx = world.fx, color = e.color || this.move.def.color, cx = this.pos.x, cy = this.center, z = this.pos.z, big = e.big;
     fx.shock(cx, cy, z, e.r * 1.2, color, 0.45); fx.groundRing(cx, this.pos.y, z, e.r * 1.9, color, 0.6); fx.glow(cx, cy, z, e.r * 1.0, color, 0.4);
-    fx.spark(cx, cy, z, 14 + (big ? 20 : 0), color, 6 + e.r, 0.25, 0.55, 4); fx.dustPuff(cx, this.pos.y, z, 8); sfx.thud(); if (big || e.fin) sfx.shimmer(); else sfx.magic(); world.addShake(big ? 0.8 : 0.3);
+    fx.spark(cx, cy, z, 14 + (big ? 20 : 0), color, 6 + e.r, 0.25, 0.55, 4); fx.dustPuff(cx, this.pos.y, z, 8); sfx.thud(); if (big || e.fin) sfx.shimmer(); else sfx.magic(); if (big) world.addShake(0.8);
     for (const o of world.fighters) {
       if (o === this || o.dead || o.state === 'ko' || set.has(o)) continue;
       const dx = o.pos.x - cx, dy = o.center - cy; if (Math.hypot(dx, dy * 0.8) > e.r + o.radius) continue;
-      if (o.takeHit(this, { dmg: e.dmg, kb: e.kb, ang: e.ang, dir: sgn(dx) || this.face, radial: true, ox: cx, oy: cy, fin: e.fin, big: e.big, stun: e.stun, fx: 'burst', color }, world)) set.add(o);
+      if (o.takeHit(this, { dmg: e.dmg, kb: e.kb, ang: e.ang, dir: sgn(dx) || this.face, radial: true, ox: cx, oy: cy, fin: e.fin, big: e.big, stun: e.stun, fx: 'burst', color, sig: e.sig, pierce: e.pierce }, world)) set.add(o);
     }
   }
   fireProj(e, d, world) {
@@ -279,13 +314,13 @@ export class Fighter {
     if (tgt && e.n < 4) { const dx = (tgt.pos.x - this.pos.x) * f, dy = tgt.center - my; if (dx > 1) base = clamp(Math.atan2(dy, dx), -0.45, 0.45); }
     const speed = e.style === 'rock' ? 17 : 23, sp = (e.spread || 8) * rad;
     for (let i = 0; i < e.n; i++) { const a = base + (i - (e.n - 1) / 2) * sp; const vx = Math.cos(a) * speed * f, vy = Math.sin(a) * speed + (e.style === 'rock' ? 5 : 0);
-      world.projectiles.push(new Projectile(world, this, this.pos.x + f * 0.8, my, vx, vy, { dmg: e.dmg, kb: e.kb, ang: 12, style: e.style, color: d.color, big: e.big, life: 1.25 })); }
+      world.projectiles.push(new Projectile(world, this, this.pos.x + f * 0.8, my, vx, vy, { dmg: e.dmg, kb: e.kb, ang: 12, style: e.style, color: d.color, big: e.big, sig: e.sig, life: 1.25 })); }
     world.fx.flash(this.pos.x + f * 0.9, my, this.pos.z, e.big ? 3 : 1.6, d.color, 0.16); if (e.style === 'arrow') sfx.arrow(); else sfx.magic();
   }
   beam(e, world) {
     const f = this.face, my = this.pos.y + this.height * 0.7; let targets = e.all ? world.fighters.filter(o => o !== this && !o.dead && o.state !== 'ko' && (o.pos.x - this.pos.x) * f > -1 && Math.abs(o.pos.x - this.pos.x) < e.range) : [this.nearestEnemy(e.range, true)].filter(Boolean);
     if (!targets.length) { world.fx.beam(this.pos.x + f * 0.5, my, this.pos.x + f * e.range * 0.6, my, this.pos.z, this.move.def.color, 0.6, 0.3); sfx.ice(); return; }
-    for (const t of targets) { world.fx.beam(this.pos.x + f * 0.5, my, t.pos.x, t.center, this.pos.z, 0xd0f4ff, e.big ? 1.1 : 0.7, 0.4); world.fx.flash(t.pos.x, t.center, t.pos.z, 3, 0xd0f4ff, 0.3); if (t.takeHit(this, { dmg: e.dmg, kb: 1, ang: 20, dir: f, fx: 'proj', color: 0xd0f4ff, pierce: true }, world)) t.stunBy(this, e.time, world); }
+    for (const t of targets) { world.fx.beam(this.pos.x + f * 0.5, my, t.pos.x, t.center, this.pos.z, 0xd0f4ff, e.big ? 1.1 : 0.7, 0.4); world.fx.flash(t.pos.x, t.center, t.pos.z, 3, 0xd0f4ff, 0.3); if (t.takeHit(this, { dmg: e.dmg, kb: 1, ang: 20, dir: f, fx: 'proj', color: 0xd0f4ff, pierce: true, sig: e.sig }, world)) t.stunBy(this, e.time, world); }
     sfx.ice();
   }
   // ---------- per-step update ----------
@@ -293,7 +328,7 @@ export class Fighter {
     if (this.dead) return;
     const B = world.arena.blast;
     this.animT += dt; this.stateT += dt; this.invuln = Math.max(0, this.invuln - dt); this.dodgeCD = Math.max(0, this.dodgeCD - dt); this.recoverCD = Math.max(0, this.recoverCD - dt); this.ledgeCD = Math.max(0, this.ledgeCD - dt); this.dropT = Math.max(0, this.dropT - dt); this.landT = Math.max(0, this.landT - dt); this.recT = Math.max(0, this.recT - dt); this.flash = Math.max(0, this.flash - dt); this.comboT -= dt; if (this.comboT <= 0) this.comboHits = 0;
-    this.power = Math.min(100, this.power + dt * 1.0);
+    this.power = Math.min(100, this.power + dt * 1.0); this.sigDodgeCD = Math.max(0, this.sigDodgeCD - dt); if (this.sig && !this.sigArmor) this.addSig(dt * 0.6);
     if (this.stunT > 0) { this.stunT -= dt; if (this.stunT <= 0) setStone(this.rig, false); }
     if (this.state === 'ko') { this.koT += dt; if (this.controller?.kind === 'local') { this.controller.sample(this, world, dt); } this.input.actions.length = 0; if (this.koT > 1.5) this.respawn(world); this.render(dt); return; }
     if (this.controller) this.controller.sample(this, world, dt); const inp = this.input;
@@ -311,7 +346,7 @@ export class Fighter {
       for (const a of inp.actions) this.doAction(a, world); if (this.state === 'down' && this.stateT > 0.6) this.getUp(world, false);
     } else {
       const moving = Math.abs(inp.mx) > 0.3;
-      if (inp.dodge && this.dodgeCD <= 0 && this.canAct() && this.onGround) { this.dodgeT = 0.3; this.dodgeCD = 0.8; this.dodgeDir = moving ? sgn(inp.mx) : -this.face; this.state = 'dodge'; this.stateT = 0; this.invuln = Math.max(this.invuln, 0.05); sfx.whoosh(); world.fx.dustPuff(this.pos.x, this.pos.y, this.pos.z, 4); }
+      if (inp.dodge && this.dodgeCD <= 0 && this.canAct() && this.onGround) { this.dodgeT = 0.3; this.dodgeCD = 0.8; this.dodgeDir = moving ? sgn(inp.mx) : -this.face; this.state = 'dodge'; this.stateT = 0; this.invuln = Math.max(this.invuln, 0.05); this.addSig(3); sfx.whoosh(); world.fx.dustPuff(this.pos.x, this.pos.y, this.pos.z, 4); }
       inp.dodge = false;
       if (this.state === 'dodge') { this.dodgeT -= dt; this.vx = this.dodgeDir * 14; world.fx.trail(this.pos.x, this.pos.y + this.height * 0.5, this.pos.z, 0xffffff, 0.5, 0.25, 1); if (this.dodgeT <= 0) { this.state = 'idle'; this.dodgeT = 0; } }
       this.blocking = !!inp.block && this.canAct() && this.onGround;
@@ -357,7 +392,7 @@ export class Fighter {
     if (landed) {
       const impact = -this.vy; this.pos.y = landed.y; this.vy = 0; this.onGround = true; this.surf = landed; this.jumpsLeft = 1; this.recoverUsed = false; this.recT = 0;
       if (!wasGround) { this.landT = 0.14; if (impact > 7) { world.fx.dustPuff(this.pos.x, this.pos.y, this.pos.z, impact > 16 ? 8 : 4); if (impact > 12) sfx.land(); }
-        if (this.hitstun > 0 && this.tumble) { this.state = 'down'; this.stateT = 0; this.hitstun = 0; this.tumble = false; this.invuln = Math.max(this.invuln, 0.25); this.vx *= 0.3; world.fx.dustPuff(this.pos.x, this.pos.y, this.pos.z, 8); sfx.thud(); world.addShake(0.25); }
+        if (this.hitstun > 0 && this.tumble) { this.state = 'down'; this.stateT = 0; this.hitstun = 0; this.tumble = false; this.invuln = Math.max(this.invuln, 0.25); this.vx *= 0.3; world.fx.dustPuff(this.pos.x, this.pos.y, this.pos.z, 8); sfx.thud(); }
         else if (this.state === 'air') this.state = 'idle'; }
     } else if (this.onGround) { // still standing?
       const s = this.surf; if (!s || this.pos.x < s.x0 - r * 0.35 || this.pos.x > s.x1 + r * 0.35 || this.pos.y > s.y + 0.05 || this.dropT > 0 && !s.solid) { this.onGround = false; this.surf = null; if (this.state === 'idle' || this.state === 'run') this.state = 'air'; }
@@ -391,6 +426,13 @@ export class Fighter {
     this.spawn(best, 11, 2.8); if (this.isPlayer) { this.relLock = 0.4; this.needRelease = true; } world.emit('respawn', { f: this }); sfx.respawn(); world.fx.groundRing(best, 10, 0, 4, 0xfff0a0, 0.8); world.fx.glow(best, 11.8, 0, 5, 0xfff0a0, 0.8); world.emit('lifeLost', { f: this });
   }
   dispose() { this.disposed = true; this.world.scene.remove(this.group); this.world.scene.remove(this.shadow); }
+  // signature look: power pose while winding up (growing, glowing), then the action/power pose for the strike; a steady glow while the meter is full
+  sigAnim() {
+    if (!this.sig) return {}; const o = { sigColor: this.sigCol ||= new THREE.Color(this.sig.c), sigReady: this.sigMeter >= 100 && !this.sigArmor };
+    if (this.state === 'sigwind') { const p = this.sigWind; o.sigPose = 'power'; o.sigScale = 1 + 0.2 * Math.min(1, p * 1.6) + Math.sin(this.animT * 22) * 0.015; o.sigGlow = 0.18 + 0.6 * p; o.sigLift = p; }
+    else if (this.sigFx && this.sigArmor) { o.sigPose = ['charge', 'rush', 'dive', 'whirl'].includes(this.sig.kind) ? 'action' : 'power'; o.sigScale = 1.12; o.sigGlow = 0.5; }
+    return o;
+  }
   // ---------- rendering ----------
   render(dt) {
     const w = this.world, S = this.shadow;
@@ -405,6 +447,7 @@ export class Fighter {
     else if (this.state === 'ledge') { mode = 'jump'; }
     else if (this.hitstun > 0) { mode = 'hit'; phase = 1 - Math.min(1, this.hitstun / 0.35); }
     else if (this.stunT > 0) { mode = 'idle'; }
+    else if (this.state === 'sigwind') { mode = 'attack'; phase = this.sigWind; seg = 0.2; kind = 'cast'; }
     else if (this.state === 'attack' && mv) {
       const d = mv.def; phase = Math.min(1, mv.t / d.dur); mode = d.leap ? 'leap' : (d.anim === 'cast' ? 'cast' : 'attack'); style = d.anim;
       const hits = d.events.filter(e => e.k === 'hit' || e.k === 'pulse' || e.k === 'proj');
@@ -420,7 +463,7 @@ export class Fighter {
     const tumble = this.tumble && this.hitstun > 0;
     if (this.bb) {
       const m2 = mode === 'leap' || mode === 'cast' ? 'attack' : mode === 'run' || mode === 'idle' && this.speedNorm > 0.1 ? 'run' : mode;
-      animateBillboard(this.bb, { face: this.face, t: this.animT, speed: Math.min(1, this.speedNorm || 0), grounded: this.onGround, vy: this.vy, mode: m2, slot: this.move && this.move.slot, phase, seg, kind: mode === 'cast' ? 'cast' : kind, spins, tumble, frozen: this.stunT > 0, landT: this.landT, invuln: this.invuln, power: this.power >= 100, flash: this.flash, grade: this.world.grade });
+      animateBillboard(this.bb, { face: this.face, t: this.animT, speed: Math.min(1, this.speedNorm || 0), grounded: this.onGround, vy: this.vy, mode: m2, slot: this.move && this.move.slot, phase, seg, kind: mode === 'cast' ? 'cast' : kind, spins, tumble, frozen: this.stunT > 0, landT: this.landT, invuln: this.sigArmor ? 0 : this.invuln, power: this.power >= 100, flash: this.flash, grade: this.world.grade, ...this.sigAnim() });
       this.group.rotation.y = 0; this.bb.root.position.y = this.bb.root.userData.lift || 0;
     } else {
       animateRig(this.rig, { mode: mode === 'leap' ? 'leap' : mode, phase, speed: this.stunT > 0 ? 0 : Math.min(1, this.speedNorm || 0), style, seg, kind, hitIdx, spins }, this.stunT > 0 ? 0 : this.animT);
@@ -432,6 +475,7 @@ export class Fighter {
     if (this.mixer) this.mixer.update(dt);
     // ambient FX: power glow, frozen sparkle, invulnerable ring
     if (this.power >= 100 && Math.random() < 0.25 && this.state !== 'ko') w.fx.embers(this.pos.x, this.pos.y + 0.2, this.pos.z, 1, 0xffd860, this.radius * 2);
+    if (this.sig && this.sigMeter >= 100 && !this.sigArmor && this.state !== 'ko' && dt > 0) { if (Math.random() < 0.35) w.fx.embers(this.pos.x, this.pos.y + 0.2, this.pos.z, 1, this.sig.c, this.radius * 2.4); if (Math.random() < 0.05) w.fx.groundRing(this.pos.x, this.pos.y, this.pos.z, this.radius * 3.2, this.sig.c2, 0.5); }
     if (this.stunT > 0 && Math.random() < 0.3) w.fx.spark(this.pos.x, this.center, this.pos.z, 1, 0xb0f0ff, 2, 0.15, 0.4, 0);
   }
 }

@@ -67,7 +67,8 @@ function rimTexture(tex, side) {
 export function animateBillboard(bb, S) {
   // S: { face, t, speed, grounded, vy, mode: idle|run|attack|hit|ko|block|jump|dodge, phase, seg, kind, hitArc, tumble, frozen, landT, invuln, power, flash, flashColor }
   const h = bb.h, f = S.face;
-  const want = S.mode === 'attack' && ['combo1', 'combo2', 'power'].includes(S.slot) ? S.slot : S.mode === 'attack' && S.kind !== 'melee-main' ? 'action' : (!S.grounded && S.mode !== 'hit' && S.mode !== 'ko') ? 'jump' : 'side';
+  const want0 = S.sigPose || S.mode === 'attack' && ['combo1', 'combo2', 'power'].includes(S.slot) ? S.slot : S.mode === 'attack' && S.kind !== 'melee-main' ? 'action' : (!S.grounded && S.mode !== 'hit' && S.mode !== 'ko') ? 'jump' : 'side';
+  const want = bb.poses[want0] ? want0 : bb.poses.action ? 'action' : bb.poses.side ? 'side' : Object.keys(bb.poses)[0];
   if (want !== bb.cur) { bb.cur = want; const p = bb.poses[want]; bb.mat.map = p.tex; bb.fmat.map = p.tex; bb.mat.needsUpdate = true; bb.fmat.needsUpdate = true; }
   const gr = S.grade; // arena colour grade { tint: Color, rim: Color, side: -1|1 (screen side the light comes from) }
   if (gr) { bb.mat.color.copy(gr.tint); }
@@ -94,6 +95,7 @@ export function animateBillboard(bb, S) {
   if (S.mode === 'ko') { roll = -f * S.phase * 10; sx *= 1 - S.phase * 0.6; sy *= 1 - S.phase * 0.6; }
   if (S.frozen) { sx *= 1.0; }
   const root = bb.root;
+  if (S.sigScale) { sx *= S.sigScale; sy *= S.sigScale; oy += (S.sigLift || 0) * 0.07 * h; }
   root.scale.set(sx * f * pf, sy, 1); // flip horizontally for facing (art is authored facing right unless the manifest says left)
   root.rotation.z = (S.tumble || S.mode === 'ko') ? roll : lean;
   bb.plane.position.set(ox * 1, h / 2 + oy, 0); bb.flash.position.set(ox, h / 2 + oy, 0.02);
@@ -103,6 +105,8 @@ export function animateBillboard(bb, S) {
   if (S.flash > 0) { fo = Math.min(0.85, S.flash * 5); col.set(0xff6a50); }
   else if (S.frozen) { fo = 0.55; col.set(0x70d8ff); }
   else if (S.mode === 'block') { fo = 0.28; col.set(0x4a8aff); }
+  else if (S.sigGlow > 0) { fo = Math.min(0.9, S.sigGlow * (0.85 + 0.15 * Math.sin(t * 20))); col.copy(S.sigColor); }
+  else if (S.sigReady) { fo = 0.2 + Math.sin(t * 8) * 0.12; col.copy(S.sigColor); }
   else if (S.power) { fo = 0.12 + Math.sin(t * 6) * 0.07; col.set(0xffd860); }
   bb.fmat.opacity = fo;
   if (gr && bb.rmat) { const mirrored = f * pf < 0, side = (gr.side < 0) !== mirrored ? 1 : -1; const rt = rimTexture(bb.poses[bb.cur].tex, side); if (bb.rmat.map !== rt) { bb.rmat.map = rt; bb.rmat.needsUpdate = true; } bb.rmat.color.copy(gr.rim); bb.rmat.opacity = gr.rimOp || 0.8; bb.rim.position.set(ox, bb.plane.position.y, 0.015); }

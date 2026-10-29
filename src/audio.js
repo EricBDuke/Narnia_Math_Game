@@ -155,3 +155,39 @@ export function startMusic(style) {
 }
 export function stopMusic() { clearInterval(timer); timer = null; curStyle = null; }
 export function currentMusic() { return curStyle; }
+
+// ---------- signature move sounds: phase 'wind' = the ~1 s charge-up swell, 'hit' = the big release. Flavours are tuned per fighter family. ----------
+sfx.sigReady = () => { [0, 7, 12, 19].forEach((s, i) => tone(660 * Math.pow(2, s / 12), 0.4, 'triangle', 0.07, 0, i * 0.06, 0.5)); };
+sfx.sig = (flavour = 'chime', phase = 'hit', pitch = 1) => {
+  if (!ok()) return; const P = pitch, W_ = phase === 'wind';
+  if (W_) { // shared rising swell, coloured per flavour
+    const base = { lion: 90, boom: 70, growl: 80, howl: 140, trumpet: 120, freeze: 400, chime: 330, bow: 220, steel: 260, horn: 180, wind: 200, whinny: 260, bird: 500, squeak: 700, fire: 110, drum: 90, echo: 150, splash: 200, punch: 120, hiss: 300, rope: 200, hoot: 330, bray: 160, boing: 220 }[flavour] || 220;
+    tone(base * P, 0.9, 'sawtooth', 0.07, base * 2.2 * P); tone(base * 1.5 * P, 0.9, 'triangle', 0.05, base * 3 * P, 0.05, 0.4); noise(0.9, 0.1, 300, 'bandpass', 3000, 1.2, 0, 0.3, 0.7);
+    if (flavour === 'drum' || flavour === 'lion' || flavour === 'boom') [0, 0.22, 0.44, 0.66].forEach(d => tone(70, 0.2, 'sine', 0.25, -30, d));
+    return;
+  }
+  sfx.bigHit(); const t = (f, d, ty, v, sl, dl, s) => tone(f * P, d, ty, v, sl, dl, s);
+  switch (flavour) {
+    case 'lion': sfx.roar(0.8 * P); t(55, 1.2, 'sine', 0.55, -20, 0, 0.3); noise(0.6, 0.3, 400, 'lowpass', 90, 0.7, 0.05, 0.3); [0, 7, 12].forEach((s, i) => t(392 * Math.pow(2, s / 12), 1.2, 'triangle', 0.06, 0, 0.12 + i * 0.05, 0.6)); break;
+    case 'freeze': metal(1500, 1.0, 0.09); metal(2200, 0.8, 0.06, 0.05); noise(0.9, 0.18, 6000, 'highpass', 9000, 1, 0, 0.5, 0.05); t(2600, 0.8, 'sine', 0.05, -1600, 0.02, 0.6); t(70, 0.9, 'sine', 0.35, -30); break;
+    case 'steel': [0, 0.07, 0.14, 0.21].forEach((d, i) => { noise(0.05, 0.18, 3500, 'highpass', 0, 1, d); metal(560 + i * 90, 0.6, 0.08, d); }); t(150, 0.5, 'sine', 0.3, -70); break;
+    case 'boom': t(45, 1.6, 'sine', 0.7, -15); noise(1.0, 0.45, 400, 'lowpass', 60, 0.6, 0, 0.4); metal(110, 1.4, 0.12); [0, 0.15, 0.3].forEach(d => t(60, 0.4, 'sine', 0.35, -25, d)); break;
+    case 'bow': [0, 0.05, 0.1, 0.16, 0.22, 0.3].forEach(d => { t(260, 0.14, 'triangle', 0.1, 520, d); noise(0.14, 0.08, 3000, 'bandpass', 6000, 3, d); }); sfx.shimmer(); break;
+    case 'horn': [0, 7, 12].forEach((s, i) => t(196 * Math.pow(2, s / 12), 1.3, 'sawtooth', 0.09, 0, i * 0.03, 0.5)); t(98, 1.4, 'square', 0.1, 0, 0, 0.4); noise(0.4, 0.2, 300, 'lowpass', 100, 0.7); break;
+    case 'chime': [0, 4, 7, 12, 16, 19, 24].forEach((s, i) => t(523 * Math.pow(2, s / 12), 1.1, 'sine', 0.07, 0, i * 0.07, 0.7)); sfx.shimmer(); break;
+    case 'wind': noise(1.2, 0.35, 400, 'bandpass', 3500, 0.8, 0, 0.4, 0.2); noise(1.0, 0.2, 800, 'bandpass', 200, 1.5, 0.1, 0.4, 0.3); t(220, 1.0, 'sine', 0.08, 500); break;
+    case 'whinny': [0, 0.12, 0.24].forEach((d, i) => t(500 - i * 50, 0.25, 'sawtooth', 0.09, 420 + i * 60, d, 0.3)); noise(0.5, 0.25, 500, 'lowpass', 120, 0.7); [0, 0.1, 0.2, 0.3].forEach(d => t(80, 0.12, 'sine', 0.3, -20, d)); break;
+    case 'growl': case 'howl': case 'bray': case 'trumpet': { const b = { growl: 90, howl: 200, bray: 170, trumpet: 280 }[flavour]; t(b, 1.0, flavour === 'trumpet' ? 'sawtooth' : 'square', 0.16, flavour === 'howl' ? b * 0.9 : flavour === 'trumpet' ? b * 0.5 : -b * 0.3); t(b * 1.5, 0.9, 'sawtooth', 0.08, flavour === 'howl' ? b * 0.7 : 0, 0.05); noise(0.5, 0.22, 500, 'lowpass', 120, 0.7); break; }
+    case 'bird': case 'hoot': [0, 0.14].forEach((d, i) => { t(flavour === 'hoot' ? 330 : 1400, 0.35, flavour === 'hoot' ? 'sine' : 'sawtooth', 0.1, flavour === 'hoot' ? -90 : -700, d, 0.3); }); noise(0.5, 0.22, 2500, 'bandpass', 800, 1.2, 0.05, 0.3, 0.1); break;
+    case 'squeak': for (let i = 0; i < 8; i++) t(1400 + i * 120, 0.08, 'sine', 0.08, 500, i * 0.05, 0.3); sfx.slash(1.5); metal(900, 0.5, 0.06); break;
+    case 'fire': noise(1.2, 0.4, 900, 'bandpass', 250, 0.8, 0, 0.3, 0.05); t(70, 1.0, 'sawtooth', 0.14, -30); sfx.roar(0.6); break;
+    case 'drum': [0, 0.14, 0.28, 0.42, 0.56, 0.7].forEach((d, i) => { t(75 - i * 3, 0.3, 'sine', 0.4, -30, d); noise(0.06, 0.2, 800, 'lowpass', 200, 1, d); }); sfx.shimmer(); break;
+    case 'echo': t(60, 1.5, 'sawtooth', 0.14, -15, 0, 0.9); t(66, 1.5, 'sawtooth', 0.1, -12, 0.02, 0.9); noise(0.8, 0.25, 300, 'lowpass', 80, 0.7, 0, 0.8); [0, 0.25, 0.5].forEach((d, i) => metal(220, 0.9, 0.08 / (i + 1), d)); break;
+    case 'splash': noise(0.9, 0.35, 1200, 'bandpass', 4000, 0.7, 0, 0.5, 0.05); [0, 0.1, 0.2].forEach((d, i) => t(500 + i * 200, 0.3, 'sine', 0.06, -250, d, 0.5)); t(80, 0.8, 'sine', 0.3, -30); break;
+    case 'punch': [0, 0.06, 0.12, 0.18, 0.24, 0.3].forEach(d => { noise(0.07, 0.22, 600, 'lowpass', 150, 1, d); t(130, 0.1, 'sine', 0.3, -60, d); }); sfx.bigHit(); break;
+    case 'hiss': noise(1.2, 0.3, 5000, 'highpass', 7000, 1, 0, 0.4, 0.1); t(180, 1.0, 'sawtooth', 0.08, 220); t(90, 1.0, 'sine', 0.25, -20); break;
+    case 'rope': noise(0.4, 0.3, 1500, 'bandpass', 700, 1.5, 0, 0.2); [0, 0.1, 0.2].forEach(d => t(300, 0.15, 'triangle', 0.08, -100, d)); t(60, 0.8, 'sine', 0.3, -20); break;
+    case 'boing': t(200, 0.5, 'sine', 0.2, 600); t(90, 0.9, 'sine', 0.5, -30, 0.5); noise(0.6, 0.35, 400, 'lowpass', 90, 0.7, 0.5, 0.4); break;
+    default: sfx.shimmer(); sfx.magic();
+  }
+};
