@@ -7,6 +7,7 @@ import { buildMove, SWING, fxColor } from './moves.js';
 import { sfx } from './audio.js';
 import { TEX } from './fx.js';
 import { sigMove, windupFx, burstFx, sigSound } from './signature.js';
+import { spriteFx, spriteFor } from './sigart.js';
 
 export const SLOT_INFO = {
   main:   { label: 'Main Attack', key: 'J', icon: '⚔', touch: 'Sword' },
@@ -205,6 +206,7 @@ export class Fighter {
     world.fx.burstDir(cx, cy, cz, dir, 0.4, big ? 12 : 5, 0xffffff, big ? 14 : 9, 0.2, 0.3, 0.45);
     world.fx.flash(cx - dir * 0.2, cy, cz, big ? 2.9 : 2.2, h.big ? 0xfff0c8 : col, big ? 0.2 : 0.16);
     if (big) world.fx.shock(cx, cy, cz, h.big ? 5.5 : 3.6, col, 0.3);
+    if (h.sig && src?.sig) { const sp = spriteFor(src.sig.motif); spriteFx(world.fx, sp, cx, cy, cz, { size: h.fin ? 8 : 5, grow: 1.5, s0: 0.4, spin: 1.5, life: h.fin ? 0.7 : 0.4, color: src.sig.c, k: 0.3 }); spriteFx(world.fx, 'star', cx, cy, cz, { size: h.fin ? 9 : 5.5, grow: 1.1, s0: 0.3, spin: 0.6, life: 0.3, color: 0xffffff, k: 0 }); }
     if (h.sig) { world.flashScreen = Math.max(world.flashScreen, 0.4); world.fx.shock(cx, cy, cz, 8, col, 0.5); world.fx.flash(cx, cy, cz, 5, 0xffffff, 0.3); world.fx.spark(cx, cy, cz, 26, col, 14, 0.28, 0.7); }
     if (h.big) { world.flashScreen = 0.3; sfx.bigHit(); } else if (h.fin) sfx.hit(14); else if (h.fx === 'proj') sfx.hit(6); else sfx.hit(dmg);
     if (['slash', 'slashUp', 'thrust', 'smash', 'sweep'].includes(h.fx) && src && /sword|rapier|dagger|scimitar|spear|axe/.test(src.cfg.weapon)) sfx.clang(0.5 + (big ? 0.5 : 0));
