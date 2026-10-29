@@ -283,7 +283,7 @@ export function animateRig(rig, st, t) {
     if (P.torso) P.torso.position.y += breathe * 0.5 + Math.abs(Math.sin(t * 11)) * 0.04 * st.speed;
     if (P.tail) P.tail.rotation.z = Math.sin(t * 4) * 0.25;
   }
-  const ph = st.phase || 0, arc = Math.sin(ph * Math.PI);
+  const ph = st.phase || 0; const arc = st.seg !== undefined && st.mode === 'attack' ? Math.sin(st.seg * Math.PI) : Math.sin(ph * Math.PI);
   switch (st.mode) {
     case 'attack': {
       const style = st.style || 'melee';
@@ -293,13 +293,25 @@ export function animateRig(rig, st, t) {
         else { rig.body.position.z = arc * 0.5; P.head.rotation.x = arc * 0.5; if (P.torso) P.torso.rotation.x = arc * 0.12; P.legs[0].rotation.x = -arc; P.legs[1].rotation.x = -arc * 0.8; }
       } else if (rig.kind === 'bird') { P.wingL.rotation.z = -1.4 * arc; P.wingR.rotation.z = 1.4 * arc; rig.body.position.z = arc * 0.5; P.head.rotation.x = arc * 0.6; }
       else {
-        const armR = P.armR, armL = P.armL;
-        if (style === 'projectile' || style === 'cast' || style === 'breath') { armR.rotation.x = -1.5 * Math.min(1, ph * 3); armL.rotation.x = -1.3 * Math.min(1, ph * 3); }
-        else if (style === 'multi') { const k = Math.sin(ph * Math.PI * 6); armR.rotation.x = -1.6 + k * 1.2; armL.rotation.x = -0.6 - k * 0.6; if (P.torso) P.torso.rotation.y = k * 0.3; }
-        else { armR.rotation.x = ph < 0.35 ? lerp(0, -2.6, ph / 0.35) : lerp(-2.6, 0.5, (ph - 0.35) / 0.65); armR.rotation.z = -0.2; if (P.torso) P.torso.rotation.y = lerp(0.3, -0.4, ph); }
+        const armR = P.armR, armL = P.armL; const seg = st.seg ?? ph, kind = st.kind || 'slash';
+        const wind = Math.min(1, seg / 0.4), k = seg < 0.4 ? -wind * 0.6 : seg < 0.65 ? -0.6 + (seg - 0.4) / 0.25 * 1.75 : 1.15 * (1 - (seg - 0.65) / 0.35); // -0.6 wind-up .. 1.15 follow-through
+        if (style === 'projectile' || style === 'cast' || style === 'breath') { armR.rotation.x = -1.5 * Math.min(1, ph * 3); armL.rotation.x = -1.3 * Math.min(1, ph * 3); if (style === 'cast') { armR.rotation.z = -0.5; armL.rotation.z = 0.5; } }
+        else if (style === 'spin') { armR.rotation.z = -1.4; armL.rotation.z = 1.4; armR.rotation.x = -0.3; armL.rotation.x = -0.3; }
+        else if (style === 'dash') { rig.body.rotation.x = 0.5; armR.rotation.x = 1.0; armL.rotation.x = 1.2; if (P.legL) { P.legL.rotation.x = Math.sin(t * 24) * 1.0; P.legR.rotation.x = -Math.sin(t * 24) * 1.0; } }
+        else {
+          const arm = (st.hitIdx || 0) % 2 ? armL : armR, other = arm === armR ? armL : armR; const sgn = arm === armR ? 1 : -1;
+          if (kind === 'thrust') { arm.rotation.x = -1.2 - 0.5 * Math.max(0, k); other.rotation.x = 0.5; }
+          else if (kind === 'upper') { arm.rotation.x = k < 0 ? 0.8 : lerp(0.8, -3.0, Math.min(1, k)); other.rotation.x = -0.5; }
+          else if (kind === 'sweep') { arm.rotation.x = -1.4; arm.rotation.z = sgn * lerp(0.8, -0.6, Math.max(0, k)); other.rotation.x = 0.4; }
+          else if (kind === 'jab') { arm.rotation.x = -1.5 * Math.max(0.15, Math.min(1, 0.4 + k)); other.rotation.x = -0.4; }
+          else { arm.rotation.x = k < 0 ? lerp(0, -2.8, -k / 0.6) : lerp(-2.8, 0.7, Math.min(1, k / 1.15)); arm.rotation.z = sgn * -0.2; other.rotation.x = -0.8 * Math.max(0, k); }
+          if (P.torso) P.torso.rotation.y = (arm === armR ? 1 : -1) * lerp(0.45, -0.5, (k + 0.6) / 1.75);
+          rig.body.rotation.x = 0.28 * Math.max(0, k);
+          if (P.legL) { P.legL.rotation.x = -0.55 * Math.max(0, k); P.legR.rotation.x = 0.5 * Math.max(0, k); }
+        }
         if (rig.kind === 'monopod') rig.body.position.y += arc * 0.5;
       }
-      if (style === 'spin') rig.body.rotation.y = ph * Math.PI * 4;
+      if (style === 'spin') rig.body.rotation.y = ph * Math.PI * 2 * (st.spins || 2);
       break; }
     case 'block':
       if (P.armL && rig.kind !== 'quad') { P.armL.rotation.x = -1.4; P.armR.rotation.x = -1.2; P.armL.rotation.z = 0.5; P.armR.rotation.z = -0.5; }
