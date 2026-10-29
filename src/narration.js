@@ -40,8 +40,7 @@ export function aslanLine(moment) {
   last[moment] = i; return list[i];
 }
 
-// A random line from the whole verified set (used by the Welcome screen); never repeats the previous one.
-export function aslanAny() {
-  const all = Object.values(ASLAN).flat(); let i = Math.floor(Math.random() * all.length); if (all.length > 1 && i === last.__any) i = (i + 1) % all.length; last.__any = i; return all[i];
-}
+// The Welcome screen ALWAYS shows this one line (chosen by Eric); it is never randomized.
+export const WELCOME_LINE = { text: '\u201cRise up, Sir Peter Wolf\'s-Bane.\u201d', source: 'The Lion, the Witch and the Wardrobe, ch. 12' };
+export function welcomeLine() { return WELCOME_LINE; }
 export const ASLAN_COUNT = Object.values(ASLAN).flat().length;
