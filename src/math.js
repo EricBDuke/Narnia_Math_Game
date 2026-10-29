@@ -1,12 +1,12 @@
 // Math gate: problem generation and checking.
-// Difficulty ranges (max is 5-digit by 2-digit, per design):
+// Difficulty ranges (easier since the last pass: each level moved down one step; Ultimate tops out at 4-digit by 2-digit):
 export const DIFFICULTIES = {
-  easy:     { label: 'Easy',     mul: [[2, 1], [2, 1], [3, 1]], div: [[2, 1], [3, 1]], blurb: '2-3 digit numbers times 1 digit' },
-  medium:   { label: 'Medium',   mul: [[3, 1], [2, 2], [4, 1]], div: [[3, 1], [4, 1]], blurb: 'Up to 4 digits, 2-digit by 2-digit' },
-  hard:     { label: 'Hard',     mul: [[3, 2], [4, 2]],         div: [[3, 2], [4, 2]], blurb: '3-4 digits by 2 digits' },
-  ultimate: { label: 'Ultimate', mul: [[4, 2], [5, 2]],         div: [[5, 2], [4, 2]], blurb: 'Up to 5 digits by 2 digits' },
+  easy:     { label: 'Easy',     mul: [[1, 1], [1, 1], [2, 1]], div: [[2, 1], [2, 1]], blurb: '1-2 digit numbers times 1 digit' },
+  medium:   { label: 'Medium',   mul: [[2, 1], [2, 1], [3, 1]], div: [[2, 1], [3, 1]], blurb: '2-3 digit numbers times 1 digit' },
+  hard:     { label: 'Hard',     mul: [[3, 1], [2, 2], [4, 1]], div: [[3, 1], [4, 1]], blurb: 'Up to 4 digits, 2-digit by 2-digit' },
+  ultimate: { label: 'Ultimate', mul: [[3, 2], [4, 2]],         div: [[3, 2], [4, 2]], blurb: '3-4 digits by 2 digits' },
 };
-export const GATE = { total: 10, pass: 7 }; // need 7 of 10 to fight
+export const GATE = { total: 5, pass: 4 }; // need 4 of 5 to fight
 const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 const nDigit = (n) => rnd(n === 1 ? 2 : 10 ** (n - 1), 10 ** n - 1); // 1-digit: 2..9 (no x1/x0)
 const pick = (a) => a[Math.floor(Math.random() * a.length)];

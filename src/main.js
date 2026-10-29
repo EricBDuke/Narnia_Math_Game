@@ -3,12 +3,13 @@ import * as THREE from 'three';
 import { FIGHTERS } from './fighters.js';
 import { ARENAS, buildArena, setArenaArt } from './arenas.js';
 import { DIFFICULTIES, GATE, makeSet, check, hint, explain } from './math.js';
-import { aslanLine } from './narration.js';
+import { aslanLine, aslanAny } from './narration.js';
 import { World, Fighter, SLOT_INFO } from './combat.js';
 import { InputState, LocalController, AIController, AI_LEVELS } from './controllers.js';
 import { buildPlaceholder, animateRig } from './models.js';
 import { FX } from './fx.js';
 import { applyArtMap, setArtRegistry, artUrl, artPaths, makeBillboard } from './sprites.js';
+import { attachSignatures } from './signature.js';
 import { assetUrl, setAssetMode, progress, resetProgress } from './assets.js';
 import { sfx, unlockAudio, setMuted, isMuted, startMusic, stopMusic, audioState, audioLevel } from './audio.js';
 const inputState = new InputState(); // keyboard + touch write here; LocalController feeds it to the player's fighter
@@ -17,7 +18,8 @@ const $ = (s) => document.querySelector(s), $$ = (s) => [...document.querySelect
 const params = new URLSearchParams(location.search);
 const IS_TOUCH = params.get('touch') === '1' || (params.get('touch') !== '0' && (matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window || navigator.maxTouchPoints > 0));
 document.body.classList.toggle('touch', IS_TOUCH);
-const settings = Object.assign({ diff: 'easy', mode: 'mixed', pool: 'all', fighter: 'peter', arena: 'random', round: 1 }, JSON.parse(localStorage.getItem('nmb-settings') || '{}'));
+const settings = Object.assign({ diff: 'easy', mode: 'mixed', fighter: 'peter', arena: 'charn', opps: 5, oppMode: 'random', oppPick: [], round: 1 }, JSON.parse(localStorage.getItem('nmb-settings') || '{}'));
+if (!ARENAS.some(a => a.id === settings.arena)) settings.arena = 'charn';
 const save = () => localStorage.setItem('nmb-settings', JSON.stringify(settings));
 let MANIFEST = { files: [], arenas: {} };
 
@@ -37,9 +39,10 @@ let fx = null;
 
 // ---------- screens ----------
 let screen = 'title';
-let MENU_BG = false; const MENU_SCREENS = ['title', 'select', 'math', 'mresult', 'load'];
+let MENU_BG = false; const MENU_SCREENS = ['title', 'select', 'math', 'mresult', 'load', 'welcome', 'arena', 'opps'];
 function syncMenuBg() { const on = MENU_BG && MENU_SCREENS.includes(screen) && activeScene === previewScene; $('#menu-bg').classList.toggle('on', on); $('#menu-bg').dataset.s = screen; previewScene.background = on ? null : previewBgColor; previewScene.fog = on ? null : previewFog; lowpoly.visible = !on; menuBlob.visible = on; document.body.classList.toggle('menu-art', on); }
-function show(id) { screen = id; document.body.classList.toggle('in-fight', ['fight', 'pause', 'moves', 'end'].includes(id)); $$('.screen').forEach(s => s.classList.add('hidden')); const el = $('#s-' + id); if (el) el.classList.remove('hidden');
+function applyPreviewVis() { const showF = !['welcome', 'arena', 'opps'].includes(screen); if (previewBB) previewBB.root.visible = showF; if (previewRig) previewRig.root.visible = showF && !previewBB; if (!showF) menuBlob.visible = false; }
+function show(id) { screen = id; try { applyPreviewVis(); } catch (e) {} document.body.classList.toggle('in-fight', ['fight', 'pause', 'moves', 'end'].includes(id)); $$('.screen').forEach(s => s.classList.add('hidden')); const el = $('#s-' + id); if (el) el.classList.remove('hidden');
   $('#s-hud').classList.toggle('hidden', !['fight', 'pause', 'moves', 'end'].includes(id)); syncMenuBg(); }
 let aslanTimer = 0;
 function aslan(moment, secs = 6) {
@@ -53,11 +56,11 @@ function segment(id, key, onChange) {
 const tapAudio = () => { unlockAudio(); if (!audioState().music) startMusic('mystic'); };
 document.addEventListener('pointerdown', tapAudio, { capture: true });
 document.addEventListener('gesturestart', e => e.preventDefault());
-document.addEventListener('touchmove', e => { if (!e.target.closest('#grid, #arena-pick, #mr-list')) e.preventDefault(); }, { passive: false });
+document.addEventListener('touchmove', e => { if (!e.target.closest('.scrollable, #mr-list')) e.preventDefault(); }, { passive: false });
 document.addEventListener('dblclick', e => e.preventDefault());
 
 // ---------- TITLE ----------
-function toTitle() { show('title'); hideAslan(); segment('diff', 'diff'); segment('mode', 'mode'); segment('pool', 'pool'); setScene(previewScene); }
+function toTitle() { show('title'); hideAslan(); segment('diff', 'diff'); segment('mode', 'mode'); setScene(previewScene); }
 $('#btn-start').onclick = () => { sfx.click(); settings.round = 1; save(); startMath(); };
 
 // ---------- MATH GATE ----------
@@ -111,15 +114,15 @@ $('#btn-hint').onclick = () => { const p = M.set[M.i]; $('#m-hint').textContent 
 let gateBonus = { power: 0, hpMul: 1, label: '' };
 function mathResult() {
   const s = M.score, pass = s >= GATE.pass;
-  gateBonus = s === 10 ? { power: 100, hpMul: 1.2, label: 'Perfect 10! Your Power Move starts full and you are 20% sturdier, so you get knocked back less.' } : s === 9 ? { power: 50, hpMul: 1.1, label: '9 of 10! Your power meter starts half full and you are 10% sturdier.' } : { power: 0, hpMul: 1, label: '' };
+  gateBonus = s === GATE.total ? { power: 100, hpMul: 1.2, label: `Perfect ${GATE.total} of ${GATE.total}! Your Power Move starts full and you are 20% sturdier, so you get knocked back less.` } : { power: 0, hpMul: 1, label: '' };
   show('mresult');
   $('#mr-title').textContent = `${s} / ${GATE.total}`;
-  $('#mr-text').innerHTML = pass ? `<b style="color:#8af0a0">You may fight!</b> You needed ${GATE.pass} correct. ${gateBonus.label}` : `<b style="color:#ff9a8a">You need ${GATE.pass} correct to fight.</b> Try 10 new problems.`;
+  $('#mr-text').innerHTML = pass ? `<b style="color:#8af0a0">You may fight!</b> You needed ${GATE.pass} correct. ${gateBonus.label}` : `<b style="color:#ff9a8a">You need ${GATE.pass} correct to fight.</b> Try ${GATE.total} new problems.`;
   $('#mr-list').innerHTML = M.set.map((p, k) => `<li class="${M.results[k] ? 'ok' : 'no'}">${M.results[k] ? '✓' : '✗'} ${explain(p)}</li>`).join('');
   $('#btn-to-select').classList.toggle('hidden', !pass);
-  if (pass) { sfx.win(); if (s === 10) aslan('levelUp', 6); } else { sfx.lose(); aslan('wrongAnswer', 6); }
+  if (pass) { sfx.win(); if (s === GATE.total) aslan('levelUp', 6); } else { sfx.lose(); aslan('wrongAnswer', 6); }
 }
-$('#btn-to-select').onclick = () => { sfx.click(); toSelect(); };
+$('#btn-to-select').onclick = () => { sfx.click(); toWelcome(); };
 $('#btn-retry-math').onclick = () => { sfx.click(); startMath('mathEncouragement'); };
 
 // ---------- SELECT ----------
@@ -142,36 +145,134 @@ function portrait(cfg) {
   portraitScene.remove(rig.root); rig.root.traverse(o => { if (o.isMesh) o.material.dispose(); });
   return portraitCache[cfg.id] = url;
 }
-function poolList() { return settings.pool === 'all' ? FIGHTERS : FIGHTERS.filter(f => f.starter); }
+function poolList() { return FIGHTERS; }
+const BOOK_IDS = ['mn', 'lww', 'hhb', 'pc', 'vdt', 'sc', 'lb'];
+const BOOK_TITLES = BOOK_IDS.map((_, i) => ARENAS[i * 2].book);
+const arenasOfBook = (bi) => ARENAS.filter(a => a.book === BOOK_TITLES[bi]);
+const arenaThumb = (a) => { const m = MANIFEST.arenas?.[a.id]; if (!m) return null; return (MANIFEST.webp ? assetUrl(`art/thumbs/${a.id}.png`) : assetUrl(m.back)).replace(/'/g, '%27').replace(/"/g, '%22'); };
+const bookOf = (f) => BOOK_IDS.indexOf(f.bookId);
+const STEPS = ['Battlefield', 'Fighter', 'Opponents'];
+function drawSteps() { $$('.steps').forEach(el => { const n = +el.dataset.step; el.innerHTML = STEPS.map((t, i) => `<span class="${i + 1 === n ? 'cur' : i + 1 < n ? 'done' : ''}"><i>${i + 1}</i><em>${t}</em></span>`).join(''); }); }
+const clickSfx = () => { try { sfx.click(); } catch (e) {} };
+
+// ---- Welcome ----
+function toWelcome() {
+  show('welcome'); hideAslan(); drawSteps(); const l = aslanAny(); $('#wl-quote').textContent = l.text; $('#wl-src').textContent = '— ' + l.source;
+  if (MANIFEST.aslanPortrait) $('#wl-lion').src = assetUrl(MANIFEST.aslanPortrait); setScene(previewScene); setTimeout(() => $('#btn-wl-continue').focus({ preventScroll: true }), 50);
+}
+$('#btn-wl-continue').onclick = () => { clickSfx(); toArena(null); };
+
+// ---- Arena: book cards, then that book's arenas ----
+let arBook = null;
+function toArena(book = arBook) {
+  arBook = book; show('arena'); hideAslan(); drawSteps(); setScene(previewScene);
+  const books = $('#ar-books'), ars = $('#ar-arenas'); books.classList.toggle('hidden', book !== null); ars.classList.toggle('hidden', book === null);
+  if (book === null) {
+    $('#ar-kick').textContent = 'Step 1 · Battlefield'; $('#ar-title').textContent = 'Which book?';
+    books.innerHTML = BOOK_IDS.map((id, bi) => { const as = arenasOfBook(bi), th = arenaThumb(as[0]), fs = FIGHTERS.filter(f => f.bookId === id).slice(0, 3);
+      return `<button class="bk" data-bi="${bi}" data-nav><span class="bk-art" style="${th ? `background-image:url('${th}')` : ''}"></span><span class="bk-shade"></span><span class="bk-num">${bi + 1}</span>
+        <span class="bk-faces">${fs.map(f => `<img alt="" src="${portraitFor(f)}">`).join('')}</span><span class="bk-name">${BOOK_TITLES[bi]}</span><span class="bk-sub">${as.length} arenas · ${FIGHTERS.filter(f => f.bookId === id).length} fighters</span></button>`; }).join('');
+    $$('#ar-books .bk').forEach(c => c.onclick = () => { clickSfx(); toArena(+c.dataset.bi); });
+  } else {
+    $('#ar-kick').textContent = `Book ${book + 1}`; $('#ar-title').textContent = BOOK_TITLES[book];
+    ars.innerHTML = arenasOfBook(book).map(a => { const th = arenaThumb(a);
+      return `<button class="ar ${settings.arena === a.id ? 'on' : ''}" data-a="${a.id}" data-nav><span class="ar-art" style="${th ? `background-image:url('${th}')` : ''}"></span><span class="ar-shade"></span><span class="ar-name">${a.name}</span><span class="ar-blurb">${a.blurb}</span><span class="ar-go">Fight here →</span></button>`; }).join('');
+    $$('#ar-arenas .ar').forEach(c => c.onclick = () => { clickSfx(); settings.arena = c.dataset.a; save(); toSelect(); });
+  }
+  setTimeout(() => { const t = $(book === null ? '#ar-books .bk' : '#ar-arenas .ar'); t && t.focus({ preventScroll: true }); }, 30);
+}
+$('#ar-back').onclick = () => { clickSfx(); if (arBook !== null) toArena(null); else toWelcome(); };
+
+// ---- Fighter select (all 70) ----
 function toSelect() {
-  show('select'); hideAslan();
-  segment('sel-pool', 'pool', () => { selBook = 'all'; toSelect(); }); // the select screen itself can switch between the 10 starters and all 70
-  const books = ['all', ...new Set(poolList().map(f => f.bookId))];
-  $('#sel-book').innerHTML = books.map(b => `<button data-b="${b}" class="${b === selBook ? 'on' : ''}">${b === 'all' ? 'All' : BOOK_SHORT[b]}</button>`).join('');
-  $$('#sel-book button').forEach(b => b.onclick = () => { selBook = b.dataset.b; toSelect(); });
-  if (!books.includes(selBook)) selBook = 'all';
-  const list = poolList().filter(f => selBook === 'all' || f.bookId === selBook);
-  if (!poolList().find(f => f.id === settings.fighter)) settings.fighter = poolList()[0].id;
-  $('#grid').innerHTML = list.map(f => `<div class="card ${f.id === settings.fighter ? 'on' : ''}" data-id="${f.id}">${f.starter && settings.pool === 'all' ? '<span class="star">★</span>' : ''}<img alt="" data-id="${f.id}"><div>${f.name}</div></div>`).join('');
-  $$('#grid .card').forEach(c => c.onclick = () => { sfx.click(); settings.fighter = c.dataset.id; save(); $$('#grid .card').forEach(x => x.classList.toggle('on', x === c)); selectInfo(); });
-  // portraits progressively (art image if present, else rendered placeholder)
+  show('select'); hideAslan(); drawSteps();
+  const books = ['all', ...BOOK_IDS];
+  $('#sel-book').innerHTML = books.map(b => `<button data-b="${b}" data-nav class="${b === selBook ? 'on' : ''}">${b === 'all' ? 'All 70' : BOOK_SHORT[b]}</button>`).join('');
+  $$('#sel-book button').forEach(b => b.onclick = () => { clickSfx(); selBook = b.dataset.b; toSelect(); });
+  const list = FIGHTERS.filter(f => selBook === 'all' || f.bookId === selBook);
+  if (!FIGHTERS.find(f => f.id === settings.fighter)) settings.fighter = FIGHTERS[0].id;
+  $('#grid').innerHTML = list.map(f => `<div class="card ${f.id === settings.fighter ? 'on' : ''}" data-id="${f.id}" data-nav tabindex="0" role="button"><img alt="" data-id="${f.id}"><div>${f.name}</div></div>`).join('');
+  $$('#grid .card').forEach(c => c.onclick = () => { clickSfx(); settings.fighter = c.dataset.id; save(); $$('#grid .card').forEach(x => x.classList.toggle('on', x === c)); selectInfo(); });
   const imgs = $$('#grid img'); let k = 0;
   const step = () => { for (let n = 0; n < 6 && k < imgs.length; n++, k++) { const f = FIGHTERS.find(x => x.id === imgs[k].dataset.id); imgs[k].src = portraitFor(f); } if (k < imgs.length && screen === 'select') requestAnimationFrame(step); };
   step();
-  // arenas grouped by book
-  let html = '<button data-a="random" class="' + (settings.arena === 'random' ? 'on' : '') + '">🎲 Random</button>'; let lastBook = '';
-  for (const a of ARENAS) { if (a.book !== lastBook) { html += `<div class="grp">${a.book}</div>`; lastBook = a.book; } html += `<button data-a="${a.id}" class="${settings.arena === a.id ? 'on' : ''}" title="${a.blurb}">${a.name}</button>`; }
-  $('#arena-pick').innerHTML = html;
-  $$('#arena-pick button').forEach(b => b.onclick = () => { sfx.click(); settings.arena = b.dataset.a; save(); $$('#arena-pick button').forEach(x => x.classList.toggle('on', x === b)); });
+  const ad = ARENAS.find(a => a.id === settings.arena) || ARENAS[0], th = arenaThumb(ad);
+  $('#sel-arena-art').style.backgroundImage = th ? `url('${th}')` : ''; $('#sel-arena-name').textContent = ad.name;
   selectInfo(); setScene(previewScene); requestAnimationFrame(updatePreviewOffset);
+  setTimeout(() => { const on = $('#grid .card.on'); on && on.scrollIntoView({ block: 'nearest' }); }, 30);
 }
 function selectInfo() {
   const f = FIGHTERS.find(x => x.id === settings.fighter);
   $('#si-name').textContent = f.name; $('#si-book').textContent = f.book; $('#si-bio').textContent = f.bio;
-  $('#si-moves').innerHTML = ['main', 'combo1', 'combo2', 'power', 'flying', 'recover'].map(s => `<tr><td>${IS_TOUCH ? SLOT_INFO[s].icon : SLOT_INFO[s].key} ${SLOT_INFO[s].label}</td><td>${f.moves[s].name}</td><td>${f.moves[s].desc}</td></tr>`).join('');
+  $('#si-moves').innerHTML = ['main', 'combo1', 'combo2', 'power', 'signature', 'flying', 'recover'].map(s => `<tr class="${s === 'signature' ? 'sigrow' : ''}"><td>${IS_TOUCH ? SLOT_INFO[s].icon : SLOT_INFO[s].key} ${SLOT_INFO[s].label}</td><td>${f.moves[s].name}</td><td>${f.moves[s].desc}</td></tr>`).join('');
   setPreviewFighter(f);
 }
-$('#btn-fight').onclick = () => { sfx.click(); startRound(); };
+$('#sel-back').onclick = () => { clickSfx(); toArena(Math.max(0, Math.floor(ARENAS.findIndex(a => a.id === settings.arena) / 2))); };
+$('#sel-arena-change').onclick = $('#sel-back').onclick;
+$('#btn-sel-next').onclick = () => { clickSfx(); toOpps(true); };
+
+// ---- Opponents: how many (1-5), random or hand-picked ----
+let oppRoll = [], opBook = 'all';
+const clampN = (n) => Math.max(1, Math.min(5, +n || 5));
+function oppIds(me, forced, n = clampN(settings.opps)) { // the opponent ids for this round (always exactly N, unique, never the player's fighter)
+  const valid = new Set(FIGHTERS.map(f => f.id)); valid.delete(me);
+  let ids = forced ? forced.filter(x => valid.has(x)) : settings.oppMode === 'pick' ? (settings.oppPick || []).filter(x => valid.has(x)) : oppRoll.filter(x => valid.has(x));
+  ids = [...new Set(ids)].slice(0, n); const rest = [...valid].filter(x => !ids.includes(x)).sort(() => Math.random() - 0.5);
+  while (ids.length < n && rest.length) ids.push(rest.pop()); return ids;
+}
+function toOpps(fresh) {
+  show('opps'); hideAslan(); drawSteps(); setScene(previewScene); settings.opps = clampN(settings.opps); settings.oppMode ||= 'random'; settings.oppPick = (settings.oppPick || []).filter(x => x !== settings.fighter);
+  if (fresh || oppRoll.length !== settings.opps || oppRoll.includes(settings.fighter)) { oppRoll = []; oppRoll = oppIds(settings.fighter); }
+  renderOpps(); setTimeout(() => { const t = $('#op-mode button.on') || $('#op-mode button'); t && t.focus({ preventScroll: true }); }, 30);
+}
+function renderOpps() {
+  const n = settings.opps, me = FIGHTERS.find(f => f.id === settings.fighter), pick = settings.oppMode === 'pick';
+  $('#op-count').innerHTML = [1, 2, 3, 4, 5].map(i => `<button data-n="${i}" data-nav class="${i === n ? 'on' : ''}">${i}</button>`).join('');
+  $$('#op-count button').forEach(b => b.onclick = () => { clickSfx(); settings.opps = +b.dataset.n; if (pick) settings.oppPick = settings.oppPick.slice(0, settings.opps); else oppRoll = oppIds(settings.fighter); save(); renderOpps(); });
+  $('#op-total').textContent = `${n + 1} fighters in the arena (you + ${n})`;
+  $$('#op-mode button').forEach(b => { b.classList.toggle('on', b.dataset.v === settings.oppMode); b.onclick = () => { clickSfx(); settings.oppMode = b.dataset.v; save(); if (settings.oppMode === 'random') oppRoll = oppIds(settings.fighter); renderOpps(); }; });
+  $('#op-roll').classList.toggle('hidden', pick); $('#op-pick').classList.toggle('hidden', !pick);
+  $('#op-me').innerHTML = `<img alt="" src="${portraitFor(me)}"><span>You: <b>${me.name.replace(/ \(.*\)/, '')}</b></span>`;
+  const ready = pick ? settings.oppPick.length === n : true;
+  if (!pick) {
+    $('#op-roll').innerHTML = oppRoll.map(id => { const f = FIGHTERS.find(x => x.id === id); return `<div class="rc"><img alt="" src="${portraitFor(f)}"><div>${f.name.replace(/ \(.*\)/, '')}</div><small>${BOOK_SHORT[f.bookId]}</small></div>`; }).join('') + `<button class="shuffle" id="op-shuffle" data-nav>🎲<span>Shuffle</span></button>`;
+    $('#op-shuffle').onclick = () => { clickSfx(); oppRoll = oppIds(settings.fighter, []); renderOpps(); };
+    $('#op-status').textContent = `${n} random opponent${n > 1 ? 's' : ''} ready`;
+  } else {
+    const books = ['all', ...BOOK_IDS];
+    $('#op-book').innerHTML = books.map(b => `<button data-b="${b}" data-nav class="${b === opBook ? 'on' : ''}">${b === 'all' ? 'All' : BOOK_SHORT[b]}</button>`).join('');
+    $$('#op-book button').forEach(b => b.onclick = () => { clickSfx(); opBook = b.dataset.b; renderOpps(); });
+    const list = FIGHTERS.filter(f => f.id !== me.id && (opBook === 'all' || f.bookId === opBook));
+    $('#op-grid').innerHTML = list.map(f => { const k = settings.oppPick.indexOf(f.id); return `<div class="card ${k >= 0 ? 'on' : ''}" data-id="${f.id}" data-nav tabindex="0" role="button">${k >= 0 ? `<span class="badge">${k + 1}</span>` : ''}<img alt="" src="${portraitFor(f)}"><div>${f.name}</div></div>`; }).join('');
+    $$('#op-grid .card').forEach(c => c.onclick = () => {
+      const id = c.dataset.id, k = settings.oppPick.indexOf(id);
+      if (k >= 0) settings.oppPick.splice(k, 1); else if (settings.oppPick.length < n) settings.oppPick.push(id); else { $('#op-status').textContent = `That's all ${n} - tap a chosen fighter to swap it out`; $('#op-status').classList.remove('flash'); void $('#op-status').offsetWidth; $('#op-status').classList.add('flash'); return; }
+      clickSfx(); save(); const keep = $('#op-grid').scrollTop; renderOpps(); $('#op-grid').scrollTop = keep; const again = $(`#op-grid .card[data-id="${id}"]`); again && again.focus({ preventScroll: true });
+    });
+    const left = n - settings.oppPick.length; $('#op-status').textContent = left > 0 ? `Pick ${left} more (${settings.oppPick.length} of ${n} chosen)` : `All ${n} chosen - ready!`;
+  }
+  const fb = $('#btn-op-fight'); fb.disabled = !ready; fb.classList.toggle('dim', !ready);
+}
+$('#op-back').onclick = () => { clickSfx(); toSelect(); };
+$('#btn-op-fight').onclick = () => { if ($('#btn-op-fight').disabled) return; clickSfx(); startRound(); };
+
+// ---- keyboard / controller navigation for every pre-fight screen (arrows move between cards, Enter picks, Esc goes back) ----
+const FLOW_SCREENS = ['welcome', 'arena', 'select', 'opps'];
+addEventListener('keydown', e => {
+  if (!FLOW_SCREENS.includes(screen)) return;
+  document.body.classList.add('kb');
+  if (e.key === 'Escape' || e.key === 'Backspace') { e.preventDefault(); const back = { welcome: null, arena: '#ar-back', select: '#sel-back', opps: '#op-back' }[screen]; back && $(back).click(); return; }
+  const dir = { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowDown: [0, 1], ArrowUp: [0, -1] }[e.key];
+  if (dir) {
+    e.preventDefault(); const els = $$(`#s-${screen} [data-nav]`).filter(x => x.offsetParent && !x.disabled); if (!els.length) return;
+    let cur = els.includes(document.activeElement) ? document.activeElement : els.find(x => x.classList.contains('on')) || els[0];
+    if (cur !== document.activeElement && !els.includes(document.activeElement)) { cur.focus({ preventScroll: false }); return; }
+    const c = cur.getBoundingClientRect(), cx = c.left + c.width / 2, cy = c.top + c.height / 2; let best = null, bs = 1e9;
+    for (const x of els) { if (x === cur) continue; const r = x.getBoundingClientRect(), dx = r.left + r.width / 2 - cx, dy = r.top + r.height / 2 - cy; const along = dx * dir[0] + dy * dir[1]; if (along < 4) continue; const side = Math.abs(dx * dir[1]) + Math.abs(dy * dir[0]); const sc = along + side * 2.2; if (sc < bs) { bs = sc; best = x; } }
+    if (best) { best.focus({ preventScroll: true }); best.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
+  } else if ((e.key === 'Enter' || e.key === ' ') && document.activeElement && document.activeElement.matches('[data-nav]')) { e.preventDefault(); document.activeElement.click(); }
+});
+addEventListener('pointerdown', () => document.body.classList.remove('kb'), true);
 
 // ---------- preview scene (title / math / select background) ----------
 const previewScene = new THREE.Scene();
@@ -192,7 +293,7 @@ let previewRig = null, previewBB = null, previewToken = 0;
 function setPreviewFighter(f) {
   if (previewRig) previewScene.remove(previewRig.root); if (previewBB) { previewScene.remove(previewBB.root); previewBB = null; }
   previewRig = buildPlaceholder(f); previewRig.root.traverse(o => { if (o.isMesh) o.castShadow = true; }); previewScene.add(previewRig.root);
-  const tok = ++previewToken; if (artPaths(f).side) makeBillboard({ ...f, art: { ...f.art, side: f.art.action || f.art.side } }, 3.6, { only: ['side'] }).then(bb => { if (bb && tok === previewToken) { previewBB = bb; previewRig.root.visible = false; previewScene.add(bb.root); } });
+  const tok = ++previewToken; if (artPaths(f).side) makeBillboard({ ...f, art: { ...f.art, side: f.art.action || f.art.side } }, 3.6, { only: ['side'] }).then(bb => { if (bb && tok === previewToken) { previewBB = bb; previewRig.root.visible = false; previewScene.add(bb.root); applyPreviewVis(); } });
 }
 function updatePreviewOffset() {
   if (screen === 'select') { const L = $('.sel-left').getBoundingClientRect(), R = $('.sel-right').getBoundingClientRect(); const cx = (L.right + R.left) / 2; camera.setViewOffset(innerWidth, innerHeight, (innerWidth / 2 - cx), 0, innerWidth, innerHeight); }
@@ -205,7 +306,7 @@ function setScene(s) { activeScene = s; if (s === previewScene) updatePreviewOff
 function disposeScene(s) { s?.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) [].concat(o.material).forEach(m => { m.map?.dispose?.(); m.dispose(); }); }); }
 const texLoader = new THREE.TextureLoader();
 let roundTok = 0;
-function startRound(forceArena, forceFighter) {
+function startRound(forceArena, forceFighter, forceOpps) {
   const tok = ++roundTok; resetProgress(); window.__nmb.roundStart = performance.now(); window.__nmb.roundReady = null; window.__nmb.loadBytes = null;
   if (world) { world.fighters.forEach(f => f.dispose()); world.clearScene(); } if (fx) fx.dispose(); if (arenaScene) disposeScene(arenaScene);
   arenaScene = new THREE.Scene(); fx = new FX(arenaScene);
@@ -215,12 +316,13 @@ function startRound(forceArena, forceFighter) {
   const lvl = AI_LEVELS[settings.diff];
   world = new World(arenaScene, arena, fx, {}); world.grade = arena.grade || null;
   const me = FIGHTERS.find(f => f.id === (forceFighter || settings.fighter));
-  const pool = poolList().filter(f => f.id !== me.id).sort(() => Math.random() - 0.5).slice(0, 5);
+  const oppList = Array.isArray(forceOpps) ? oppIds(me.id, forceOpps, Math.max(1, Math.min(5, forceOpps.length))) : typeof forceOpps === 'number' ? oppIds(me.id, [], clampN(forceOpps)) : forceFighter ? oppIds(me.id, [], 5) : oppIds(me.id, null);
+  const pool = oppList.map(id => FIGHTERS.find(f => f.id === id));
   inputState.queue.length = 0; inputState.mx = inputState.my = 0;
   player = new Fighter(me, world, { isPlayer: true, lives: 3, power: gateBonus.power, hpMul: gateBonus.hpMul, controller: new LocalController(inputState) });
   world.fighters.push(player);
   pool.forEach(cfg => world.fighters.push(new Fighter(cfg, world, { controller: new AIController(lvl), lives: 2, dmgMul: lvl.dmgMul })));
-  const order = world.fighters.slice().sort(() => Math.random() - 0.5); const sp = arena.spawns.slice(); order.forEach((f, i) => { f.spawn(sp[i].x, 0.01, 2.2); });
+  const order = world.fighters.slice().sort(() => Math.random() - 0.5); const sp = arena.spawns.slice(); const SPI = { 2: [1, 4], 3: [0, 2, 5], 4: [0, 2, 3, 5], 5: [0, 1, 3, 4, 5], 6: [0, 1, 2, 3, 4, 5] }[order.length] || [0, 1, 2, 3, 4, 5]; order.forEach((f, i) => { f.spawn(sp[SPI[i]].x, 0.01, 2.2); });
   player.invuln = 3; fx.setScale(renderer.domElement.height / (2 * Math.tan(FOV * Math.PI / 360)));
   camState.init = false; roundOver = false; hideAslan();
   // loading screen: only this arena's layers and these six fighters' poses are fetched (progress counts every texture queued above)
@@ -240,7 +342,7 @@ function endRound(win) {
   if (roundOver) return; roundOver = true;
   setTimeout(() => {
     show('end'); $('#end-title').textContent = win ? 'Victory!' : 'Defeat';
-    const kos = player.stats.kos; $('#end-text').innerHTML = win ? `${player.cfg.name} is the last one standing in ${arenaDef.name}! Knockouts: ${kos}.` : `${player.cfg.name} is out of lives. Knockouts: ${kos}. Solve 10 more problems to fight again.`;
+    const kos = player.stats.kos; $('#end-text').innerHTML = win ? `${player.cfg.name} is the last one standing in ${arenaDef.name}! Knockouts: ${kos}.` : `${player.cfg.name} is out of lives. Knockouts: ${kos}. Solve ${GATE.total} more problems to fight again.`;
     if (win) { sfx.win(); aslan('victory', 8); } else { sfx.lose(); aslan('defeat', 8); }
     settings.round++; settings.lastWin = win; save(); startMusic('mystic');
   }, 1600);
@@ -253,13 +355,13 @@ let bannerT = 0;
 function banner(text, secs = 1.5) { const b = $('#banner'); b.textContent = text; b.classList.add('show'); clearTimeout(bannerT); bannerT = setTimeout(() => b.classList.remove('show'), secs * 1000); }
 let toastT = 0;
 function toast(text, secs = 2) { $('#toast').textContent = text; clearTimeout(toastT); toastT = setTimeout(() => $('#toast').textContent = '', secs * 1000); }
-const ML_SLOTS = ['main', 'combo1', 'combo2', 'power', 'flying', 'jump', 'high', 'block', 'recover'];
+const ML_SLOTS = ['main', 'combo1', 'combo2', 'power', 'signature', 'flying', 'jump', 'high', 'block', 'recover'];
 function moveName(s) { const m = player.cfg.moves; return s === 'jump' ? 'Jump' : s === 'high' ? 'High Jump' : s === 'block' ? 'Block / Dodge' : m[s].name; }
 const portraitUrl = (cfg) => MANIFEST.portraits?.[cfg.id] ? assetUrl(MANIFEST.portraits[cfg.id]) : null;  // art head crop made by sync-art.sh
 const portraitFor = (cfg) => portraitUrl(cfg) || artUrl(cfg.art.action) || artUrl(cfg.art.side) || artUrl(cfg.art.front) || portrait(cfg);
 function buildHUD() {
   const order = [player, ...world.fighters.filter(f => !f.isPlayer)];
-  $('#hud-strip').innerHTML = order.map(f => `<div class="pc ${f.isPlayer ? 'me' : ''}" data-id="${f.id}"><div class="portrait" style="background-image:url('${portraitFor(f.cfg)}')"></div><div class="pi"><div class="n">${f.cfg.name.replace(/ \(.*\)/, '')}</div><div class="pct">0<small>%</small></div><div class="lv"></div>${f.isPlayer ? '<div class="bar pw"><i></i><span>POWER</span></div>' : ''}</div></div>`).join('');
+  $('#hud-strip').innerHTML = order.map(f => `<div class="pc ${f.isPlayer ? 'me' : ''}" data-id="${f.id}"><div class="portrait" style="background-image:url('${portraitFor(f.cfg)}')"></div><div class="pi"><div class="n">${f.cfg.name.replace(/ \(.*\)/, '')}</div><div class="pct">0<small>%</small></div><div class="lv"></div>${f.isPlayer ? '<div class="bar pw"><i></i><span>POWER</span></div>' : ''}<div class="bar sg"><i></i><span>SIGNATURE</span></div></div></div>`).join('');
   $('#movelist').innerHTML = `<div class="t">${player.cfg.name.replace(/ \(.*\)/, '')} · moves${IS_TOUCH ? '' : ' (Tab = details)'}</div>` + ML_SLOTS.map(s => `<div class="r"><kbd>${IS_TOUCH ? SLOT_INFO[s].icon : SLOT_INFO[s].key}</kbd><span>${moveName(s)}</span></div>`).join('');
   $('#ml-table').innerHTML = ML_SLOTS.map(s => `<tr><td>${SLOT_INFO[s].key} · ${SLOT_INFO[s].touch}</td><td>${moveName(s)}</td><td>${['jump', 'high', 'block'].includes(s) ? SLOT_INFO[s].label : player.cfg.moves[s].desc}</td></tr>`).join('');
   $('#cam-hint').textContent = IS_TOUCH ? 'Stick: move · flick up to jump · hold down to drop through platforms' : 'A/D or ←/→ move · W/↑ or Space jump · S/↓ drop through · wheel zooms';
@@ -267,21 +369,26 @@ function buildHUD() {
 const hudCache = {};
 function updateHUD() {
   for (const f of world.fighters) {
-    const el = hudCache[f.id] ||= document.querySelector(`.pc[data-id="${f.id}"]`); if (!el) continue; const c = el._c ||= { pct: el.querySelector('.pct'), lv: el.querySelector('.lv'), pw: el.querySelector('.pw i'), pwb: el.querySelector('.pw'), last: -1, lastL: -1 };
+    const el = hudCache[f.id] ||= document.querySelector(`.pc[data-id="${f.id}"]`); if (!el) continue; const c = el._c ||= { pct: el.querySelector('.pct'), lv: el.querySelector('.lv'), pw: el.querySelector('.pw i'), pwb: el.querySelector('.pw'), sg: el.querySelector('.sg i'), sgb: el.querySelector('.sg'), last: -1, lastL: -1 };
     const p = Math.round(f.pct); if (p !== c.last) { c.pct.firstChild.nodeValue = p; c.pct.style.color = `hsl(${Math.max(0, 55 - p * 0.42)}, 95%, ${Math.max(52, 96 - p * 0.18)}%)`; if (c.last >= 0 && p > c.last) { c.pct.classList.remove('bump'); void c.pct.offsetWidth; c.pct.classList.add('bump'); } c.last = p; }
     const l = f.dead ? -1 : f.lives; if (l !== c.lastL) { c.lv.innerHTML = f.dead ? '<span class="out">OUT</span>' : '<i></i>'.repeat(Math.max(0, f.lives)) + '<i class="x"></i>'.repeat(Math.max(0, f.maxLives - f.lives)); c.lastL = l; }
     el.classList.toggle('out', f.dead); el.classList.toggle('ko', f.state === 'ko');
     if (c.pw) { c.pw.style.width = f.power + '%'; c.pwb.classList.toggle('full', f.power >= 100); }
+    if (c.sg) { c.sg.style.width = f.sigMeter + '%'; const full = f.sigMeter >= 100; c.sgb.classList.toggle('full', full); el.classList.toggle('sigready', full); if (full !== c.sigFull) { c.sigFull = full; c.sgb.querySelector('span').textContent = full ? (f.isPlayer && !IS_TOUCH ? 'SIGNATURE · P' : 'SIGNATURE!') : 'SIGNATURE'; } }
   }
+  const sb = document.querySelector('.tb[data-a="signature"]'); if (sb) { const full = player.sigMeter >= 100 && !player.dead; sb.classList.toggle('show', full); sb.classList.toggle('ready', full); }
   const pb = document.querySelector('.tb[data-a="power"]'); if (pb) pb.classList.toggle('ready', player.power >= 100);
   const rb = document.querySelector('.tb[data-a="recover"]'); if (rb) rb.classList.toggle('pulse', !player.onGround && !player.recoverUsed && player.pos.y < -1);
 }
+let sigBannerT = 0;
 function handleEvents() {
   for (const e of world.events) {
     if (e.type === 'toast') toast(e.text);
     if (e.type === 'ko') { if (e.f.isPlayer) banner('Knocked out!', 1.4); else toast(`${e.f.cfg.name} is knocked out${e.by ? ' by ' + e.by.cfg.name : ''}!`); }
     if (e.type === 'lifeLost' && e.f.isPlayer) toast(e.f.lives > 0 ? `You lost a life! ${e.f.lives} left.` : 'No lives left!', 2.5);
     if (e.type === 'out' && !e.f.isPlayer) toast(`${e.f.cfg.name} is out of the round!`, 2.2);
+    if (e.type === 'signature') { const d = e.def, b = $('#sig-banner'); b.querySelector('.sn').textContent = d.name; b.querySelector('.sw').textContent = e.f.cfg.name.replace(/ \(.*\)/, ''); b.style.setProperty('--sc', '#' + d.c.toString(16).padStart(6, '0')); b.style.setProperty('--sc2', '#' + d.c2.toString(16).padStart(6, '0')); b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); clearTimeout(sigBannerT); sigBannerT = setTimeout(() => b.classList.remove('show'), 1700); }
+    if (e.type === 'sigReady' && e.f.isPlayer) toast(IS_TOUCH ? 'SIGNATURE ready! Tap the glowing button.' : 'SIGNATURE ready! Press P.', 2.4);
     if (e.type === 'power' && e.f.isPlayer) banner(e.f.cfg.moves.power.name + '!', 1.2);
     if (e.type === 'stun' && e.f.isPlayer) toast(`${e.by.cfg.name} froze you!`, 1.4);
     if (e.type === 'respawn' && e.f.isPlayer) toast('Back in! You are protected for a moment.', 1.6);
@@ -300,6 +407,7 @@ function updateCamera(dt, realDt) {
     const t = performance.now() / 1000;
     if (screen === 'select') { camera.position.set(0, IS_TOUCH ? 2.4 : 2.2, IS_TOUCH ? 10.5 : 7.2); camera.lookAt(0, IS_TOUCH ? 1.15 : 1.1, 0); if (previewRig) { previewRig.root.rotation.y = t * 0.6; animateRig(previewRig, { mode: 'idle', speed: 0 }, t); } if (previewBB) previewBB.root.position.y = Math.sin(t * 2) * 0.03; }
     else { camera.position.set(Math.sin(t * 0.05) * 2, 2.6, 9); camera.lookAt(0, 1.4, 0); if (previewRig) { previewRig.root.rotation.y = 0.4 + Math.sin(t * 0.4) * 0.3; animateRig(previewRig, { mode: 'idle', speed: 0 }, t); } if (previewBB) previewBB.root.position.y = Math.sin(t * 2) * 0.03; }
+    const showF = !['welcome', 'arena', 'opps'].includes(screen); if (previewBB) previewBB.root.visible = showF; if (previewRig) previewRig.root.visible = showF && !previewBB; if (!showF) menuBlob.visible = false;
     const p = snowG.attributes.position; for (let i = 0; i < p.count; i++) { let y = p.getY(i) - dt * 0.8; if (y < 0) y = 14; p.setY(i, y); } p.needsUpdate = true;
     return;
   }
@@ -307,21 +415,23 @@ function updateCamera(dt, realDt) {
   const live = []; for (const f of world.fighters) { if (f.dead || f.state === 'ko') continue; n++; live.push({ f, x: Math.max(B.l + 8, Math.min(B.r - 8, f.pos.x)), y: Math.max(B.b + 4, Math.min(B.t - 4, f.pos.y)) }); }
   const extent = (list) => { let a = 1e9, b = -1e9, c = 1e9, e = -1e9; for (const o of list) { a = Math.min(a, o.x - o.f.radius); b = Math.max(b, o.x + o.f.radius); c = Math.min(c, o.y); e = Math.max(e, o.y + o.f.height); } return { minx: a, maxx: b, miny: c, maxy: e }; };
   if (n) ({ minx, maxx, miny, maxy } = extent(live)); else { minx = -6; maxx = 6; miny = 0; maxy = 4; }
-  if (world.focusT > 0 && world.focus && !world.focus.dead) { world.focusT -= dt; const f = world.focus; minx = f.pos.x - 6; maxx = f.pos.x + 6; miny = f.pos.y - 1; maxy = f.pos.y + f.height + 2; }
+  if (world.focusT > 0 && world.focus && !world.focus.dead) { world.focusT -= dt; const f = world.focus; if (world.cine || f.sigArmor) { minx = f.pos.x - 2.2; maxx = f.pos.x + 2.2; miny = f.pos.y - 0.2; maxy = f.pos.y + f.height + 0.3; } else { minx = f.pos.x - 6; maxx = f.pos.x + 6; miny = f.pos.y - 1; maxy = f.pos.y + f.height + 2; } }
   // framing: a 1.8 m fighter is ~22-25% of the screen height when fighters are close; it zooms out smoothly as they spread or jump high.
   // In the art arenas the zoom-out stops at WIDE_D (a 1.8 m fighter stays ~15% of the height): if everyone spread further than that, the frame follows the player and the nearest foes instead of all six.
-  const aspect = camera.aspect, art = !!arena.artArena, pad = art ? 1.2 : 1.9, minW = art ? 10 : 13, minH = art ? 6.4 : 8, padH = art ? 3.8 : 5, WIDE_D = 16.5;
+  const tight = !!(world.cine || (world.focus?.sigArmor && world.focusT > 0)), aspect = camera.aspect, art = !!arena.artArena, pad = art ? 1.2 : 1.9, minW = tight ? 4.4 : art ? 10 : 13, minH = tight ? 3.4 : art ? 6.4 : 8, padH = tight ? 1.6 : art ? 3.8 : 5, WIDE_D = 16.5;
   const fit = (e) => { const w = Math.max(e.maxx - e.minx + pad * 2, minW), h = Math.max(e.maxy - e.miny + padH, minH); return Math.max(h / 2 / tanH, w / 2 / (tanH * aspect)); };
   let d = fit({ minx, maxx, miny, maxy }), fx0 = minx, fx1 = maxx, fy0 = miny, fy1 = maxy;
   if (art && d > WIDE_D && live.length > 3 && !(world.focusT > 0)) {
     const anchor = live.find(o => o.f.isPlayer) || live[0]; const near = live.slice().sort((p, q) => Math.abs(p.x - anchor.x) - Math.abs(q.x - anchor.x)).slice(0, 4); const e = extent(near);
     d = Math.max(fit(e), Math.min(d, WIDE_D)); ({ minx: fx0, maxx: fx1, miny: fy0, maxy: fy1 } = e); minx = fx0; maxx = fx1; miny = fy0; maxy = fy1;
   }
-  const maxD = art ? 22 : Math.max(26, (hw + 6) / (tanH * aspect)) * 1.15; d = Math.min(maxD, Math.max(world.focusT > 0 ? 9.4 : art ? 10.2 : 11.5, d));
+  const maxD = art ? 22 : Math.max(26, (hw + 6) / (tanH * aspect)) * 1.15; d = Math.min(maxD, Math.max(world.focusT > 0 ? (tight ? 4.6 : 9.4) : art ? 10.2 : 11.5, d));
   d *= camState.zoomBias;
   const tx = (minx + maxx) / 2, ty = art ? Math.max(0.52 * camState.d * tanH, (miny + maxy) / 2 + 0.5) : Math.max(2.4, (miny + maxy) / 2 + 0.6);
-  if (!camState.init) { camState.x = tx; camState.y = ty; camState.d = d; camState.init = true; }
-  const k = 1 - Math.exp(-realDt * 3.2), k2 = 1 - Math.exp(-realDt * 2.6); camState.x += (tx - camState.x) * k; camState.y += (ty - camState.y) * k; camState.d += (d - camState.d) * k2;
+  if (!camState.init) { camState.x = tx; camState.y = ty; camState.d = d; camState.tx = tx; camState.ty = ty; camState.td = d; camState.init = true; }
+  // follow with dead bands: tiny movements of the fighters (walking, running, landing, small hops) never move or zoom the camera; only real changes in where the group is do, and then smoothly
+  if (Math.abs(tx - camState.tx) > 0.7) camState.tx = tx; if (Math.abs(ty - camState.ty) > 0.8) camState.ty = ty; if (Math.abs(d - camState.td) > 0.9 || world.focusT > 0) camState.td = d;
+  const fast = world.cine || (world.focus?.sigArmor && world.focusT > 0), k = 1 - Math.exp(-realDt * (fast ? 7 : 2.4)), k2 = 1 - Math.exp(-realDt * (fast ? 6 : 2.2)); camState.x += (camState.tx - camState.x) * k; camState.y += (camState.ty - camState.y) * k; camState.d += (camState.td - camState.d) * k2;
   // juice: shake, zoom punch, small kick toward the hit
   const sh = world.shake, kx = world.kick.x, ky = world.kick.y; world.kick.x *= Math.exp(-realDt * 6); world.kick.y *= Math.exp(-realDt * 6);
   camState.shx = (Math.random() - 0.5) * sh * 0.8; camState.shy = (Math.random() - 0.5) * sh * 0.8;
@@ -345,12 +455,13 @@ addEventListener('keydown', e => {
   }
   if (screen === 'moves' && (e.code === 'Tab' || e.code === 'Escape')) { show(prevScreen); if (prevScreen === 'fight') paused = false; return; }
   if (screen === 'pause' && e.code === 'Escape') { resume(); return; }
+  if (FLOW_SCREENS.includes(screen)) { if (e.key === 'Enter' && !(document.activeElement && document.activeElement.matches('[data-nav]'))) { const b = document.querySelector(`#s-${screen} .go:not(.hidden):not(:disabled)`); b && b.click(); } return; }
   if (screen !== 'fight') { if (e.key === 'Enter') { const b = document.querySelector(`#s-${screen} .go:not(.hidden)`); b && b.click(); } return; }
   if (e.repeat) { keys[e.code] = true; return; }
   keys[e.code] = true;
   if (e.code === 'Escape') { pause(); return; }
   if (e.code === 'Tab') { prevScreen = 'fight'; show('moves'); paused = true; return; }
-  const map = { KeyJ: 'main', KeyK: 'combo1', KeyL: 'combo2', KeyI: 'power', KeyU: 'flying', KeyR: 'recover' };
+  const map = { KeyJ: 'main', KeyK: 'combo1', KeyL: 'combo2', KeyI: 'power', KeyP: 'signature', KeyU: 'flying', KeyR: 'recover' };
   if (map[e.code]) queueAction(map[e.code]);
   if (e.code === 'Space') queueAction(e.shiftKey ? 'high' : 'jump');
   if (e.code === 'KeyO') { if (Math.abs(moveVec().x) > 0.3) inputState.dodge = true; }
@@ -380,7 +491,7 @@ $('#btn-mute-top').onclick = () => { unlockAudio(); setMuted(!isMuted()); syncMu
 // ---------- touch controls ----------
 const TB = [ // [action, right, bottom, size]
   ['main', 18, 18, 112], ['combo1', 146, 8, 82], ['combo2', 136, 102, 82], ['flying', 46, 146, 82],
-  ['power', 8, 242, 74], ['jump', 244, 8, 78], ['high', 244, 100, 74], ['block', 146, 194, 74], ['recover', 232, 186, 68],
+  ['power', 8, 242, 74], ['signature', 150, 288, 104], ['jump', 244, 8, 78], ['high', 244, 100, 74], ['block', 146, 194, 74], ['recover', 232, 186, 68],
 ];
 function buildTouch() {
   $('#touch').classList.toggle('hidden', !IS_TOUCH); if (!IS_TOUCH) return;
@@ -419,7 +530,7 @@ function loop(now) {
   const realDt = Math.min(0.1, (now - last) / 1000); last = now; qualityTick(realDt);
   if (activeScene === arenaScene && world) {
     if (screen === 'fight' && !paused) {
-      acc += realDt; let steps = 0;
+      acc += realDt * (params.get('debug') === '1' ? (window.__nmb.timeScale ?? 1) : 1); let steps = 0;
       while (acc >= STEP && steps < 5) {
         const mv = moveVec(); inputState.mx = mv.x; inputState.my = mv.y; inputState.block = !!keys.KeyO || touchBlock;
         const up = mv.y > 0.7; if (up && !upPrev) inputState.press('jump'); upPrev = up; // flick/tap up = jump
@@ -443,10 +554,12 @@ if (params.get('debug') === '1') Object.assign(window.__nmb, {
   hurtPlayer(n) { player.invuln = 0; player.takeHit(null, { dmg: n, kb: 0, ang: 0, dir: 1 }, world); },
   koFoes() { world.fighters.forEach(f => { if (!f.isPlayer && !f.dead) { f.lives = 1; f.invuln = 0; f.pos.x = world.arena.blast.r + 5; f.lastHitBy = player; f.lastHitAt = world.time; } }); },
   koPlayer() { player.invuln = 0; player.pos.y = world.arena.blast.b - 3; },
-  setPower(v) { player.power = v; }, noInvuln() { player.invuln = 0; }, setPct(f, v) { (f || player).pct = v; },
-  toSelect() { toSelect(); }, toTitle() { toTitle(); },
+  AIController, AI_LEVELS,
+  camInfo() { return { x: camera.position.x, y: camera.position.y, z: camera.position.z, rz: camera.rotation.z, shake: world ? world.shake : 0, d: camState.d }; },
+  setPower(v) { player.power = v; }, setSig(v, f) { (f || player).sigMeter = v; (f || player).sigReadyCue = v >= 100; }, doSig(f) { return (f || player).doAction('signature', world); }, noInvuln() { player.invuln = 0; }, setPct(f, v) { (f || player).pct = v; },
+  toSelect() { toSelect(); }, toTitle() { toTitle(); }, toWelcome() { toWelcome(); }, toArena(b) { toArena(b); }, toOpps(fresh) { toOpps(fresh); }, get oppRoll() { return oppRoll; },
   frac() { const r = []; for (const f of world.fighters) { const a = new THREE.Vector3(f.pos.x, f.pos.y, f.pos.z), b = new THREE.Vector3(f.pos.x, f.pos.y + (f.artH || f.height), f.pos.z); a.project(camera); b.project(camera); r.push({ n: f.cfg.name, h: +f.height.toFixed(2), frac: +((b.y - a.y) / 2).toFixed(3), x: +a.x.toFixed(2) }); } return { d: +camState.d.toFixed(1), fighters: r }; },
-  startRound(arenaId, fighterId) { if (arenaId) settings.arena = arenaId; if (fighterId) settings.fighter = fighterId; startRound(); },
+  startRound(arenaId, fighterId, opps) { if (arenaId) settings.arena = arenaId; if (fighterId) settings.fighter = fighterId; startRound(undefined, undefined, opps); },
   sim(sec) { const n = Math.round(sec / STEP); for (let i = 0; i < n; i++) { const mv = moveVec(); inputState.mx = mv.x; inputState.my = mv.y; inputState.block = !!keys.KeyO || touchBlock; world.update(STEP); fx.update(STEP); handleEvents(); } updateHUD(); },
   freezeAI(v) { world.fighters.forEach(f => { if (!f.isPlayer) { f._ctl = f._ctl || f.controller; f.controller = v ? { kind: 'idle', sample(ff) { const i = ff.input; i.mx = 0; i.my = 0; i.block = false; i.actions.length = 0; } } : f._ctl; } }); },
   placeFoe(i, x, y) { const f = world.fighters.filter(f => !f.isPlayer)[i]; f.pos.set(x, y, f.laneZ); f.vx = f.vy = 0; return f.cfg.name; },
@@ -459,7 +572,7 @@ if (params.get('debug') === '1') Object.assign(window.__nmb, {
   try { const r = await fetch('art/manifest.json', { cache: 'no-store' }); if (r.ok) MANIFEST = await r.json(); } catch (e) {}
   // the hosted art is WebP with alpha (Safari / iPadOS 14+, Chrome, Firefox): say so plainly on an older browser instead of showing blank fighters
   if (MANIFEST.webp) { const ok = await new Promise(res => { const im = new Image(); im.onload = () => res(im.width === 1); im.onerror = () => res(false); im.src = 'data:image/webp;base64,UklGRkoAAABXRUJQVlA4WAoAAAAQAAAAAAAAAAAAQUxQSAwAAAARBxAR/Q9ERP8DAABWUDggGAAAABQBAJ0BKgEAAQAAAP4AAA3AAP7mtQAAAA=='; }); if (!ok) { $('#loading').innerHTML = 'This game needs a newer browser (iPadOS 14 / Safari 14 or later) to show its painted art.'; return; } }
-  setAssetMode(MANIFEST); setArtRegistry(MANIFEST); applyArtMap(FIGHTERS);
+  setAssetMode(MANIFEST); setArtRegistry(MANIFEST); applyArtMap(FIGHTERS); attachSignatures(FIGHTERS);
   if (MANIFEST.menuBackground) { // painted menu background (title / select / math): optional, the 3D preview scene stays when the file is missing
     await new Promise(res => { const im = new Image(); const to = setTimeout(res, 6000); im.onload = () => { clearTimeout(to); $('#menu-bg').style.backgroundImage = `url('${assetUrl(MANIFEST.menuBackground)}')`; MENU_BG = true; res(); }; im.onerror = () => { clearTimeout(to); res(); }; im.src = assetUrl(MANIFEST.menuBackground); });
   }

@@ -29,23 +29,19 @@
   <section id="s-title" class="screen">
     <div class="panel title-panel">
       <h1>Narnia <span>Math Brawler</span></h1>
-      <p class="sub">Solve 10 problems to unlock each battle. Score <b>7 or more</b> to fight.</p>
+      <p class="sub">Solve 5 problems to unlock each battle. Get <b>4 of 5</b> right to fight.</p>
       <h3>Difficulty</h3>
       <div class="seg" id="diff">
-        <button data-v="easy">Easy<small>2-3 digits × 1 digit</small></button>
-        <button data-v="medium">Medium<small>up to 4 digits</small></button>
-        <button data-v="hard">Hard<small>4 digits × 2 digits</small></button>
-        <button data-v="ultimate">Ultimate<small>5 digits × 2 digits</small></button>
+        <button data-v="easy">Easy<small>1-2 digits × 1 digit</small></button>
+        <button data-v="medium">Medium<small>2-3 digits × 1 digit</small></button>
+        <button data-v="hard">Hard<small>up to 4 digits, 2 × 2</small></button>
+        <button data-v="ultimate">Ultimate<small>3-4 digits × 2 digits</small></button>
       </div>
       <h3>Problems</h3>
       <div class="seg small" id="mode">
         <button data-v="mixed">Mixed</button><button data-v="mul">Multiplication</button><button data-v="div">Long Division</button>
       </div>
-      <h3>Fighters</h3>
-      <div class="seg small" id="pool">
-        <button data-v="starters">10 Starters</button><button data-v="all">All 70</button>
-      </div>
-      <button class="big go" id="btn-start">Start the 10 problems</button>
+      <button class="big go" id="btn-start">Start the 5 problems</button>
       <p class="hint" id="title-hint">Computer: type answers and press Enter. iPad: use the number pad.</p>
     </div>
   </section>
@@ -53,7 +49,7 @@
   <!-- MATH GATE -->
   <section id="s-math" class="screen hidden">
     <div class="panel math-panel">
-      <div class="mhead"><div id="m-prog">Problem 1 of 10</div><div id="m-dots"></div><div id="m-score">Score 0</div></div>
+      <div class="mhead"><div id="m-prog">Problem 1 of 5</div><div id="m-dots"></div><div id="m-score">Score 0</div></div>
       <div id="m-kind">Multiply</div>
       <div id="m-problem">123 × 4</div>
       <div id="m-inputs">
@@ -81,15 +77,35 @@
       <h2 id="mr-title">7 / 10</h2>
       <p id="mr-text"></p>
       <ul id="mr-list"></ul>
-      <div class="row"><button class="big go" id="btn-to-select">Choose your fighter</button><button class="big ghost" id="btn-retry-math">Try 10 new problems</button></div>
+      <div class="row"><button class="big go" id="btn-to-select">Continue</button><button class="big ghost" id="btn-retry-math">Try 5 new problems</button></div>
     </div>
   </section>
 
-  <!-- FIGHTER + ARENA SELECT -->
+  <!-- WELCOME: Aslan portrait + one verified quote -->
+  <section id="s-welcome" class="screen hidden">
+    <div class="welcome">
+      <div class="wl-ring"><img id="wl-lion" alt="Aslan"></div>
+      <div class="wl-kicker">Welcome to Narnia</div>
+      <blockquote id="wl-quote"></blockquote>
+      <div id="wl-src"></div>
+      <button class="big go" id="btn-wl-continue" data-nav>Continue</button>
+    </div>
+  </section>
+
+  <!-- ARENA: pick a book, then one of its arenas -->
+  <section id="s-arena" class="screen hidden">
+    <div class="panel flow-panel">
+      <div class="flow-head"><button class="back" id="ar-back" data-nav>← Back</button><div class="flow-title"><span class="kick" id="ar-kick">Choose a battlefield</span><h2 id="ar-title">Which book?</h2></div><div class="steps" data-step="1"></div></div>
+      <div id="ar-books" class="book-grid scrollable"></div>
+      <div id="ar-arenas" class="arena-grid scrollable hidden"></div>
+    </div>
+  </section>
+
+  <!-- FIGHTER SELECT (all 70, filter by book) -->
   <section id="s-select" class="screen hidden">
     <div class="sel-left panel">
-      <div class="sel-head"><div class="sel-title"><h2>Choose your fighter</h2><div class="seg small" id="sel-pool"><button data-v="starters">10 Starters</button><button data-v="all">All 70</button></div></div><div class="seg small" id="sel-book"></div></div>
-      <div id="grid"></div>
+      <div class="sel-head"><div class="sel-title"><button class="back" id="sel-back" data-nav>← Back</button><h2>Choose your fighter</h2><div class="steps" data-step="2"></div></div><div class="seg small" id="sel-book"></div></div>
+      <div id="grid" class="scrollable"></div>
     </div>
     <div class="sel-right">
       <div class="panel sel-info">
@@ -97,10 +113,23 @@
         <table id="si-moves"></table>
       </div>
       <div class="panel sel-arena">
-        <h3>Arena</h3>
-        <div class="seg small wrap" id="arena-pick"></div>
-        <button class="big go" id="btn-fight">FIGHT!</button>
+        <div class="sel-arena-row"><div class="sel-arena-art" id="sel-arena-art"></div><div class="sel-arena-txt"><span class="kick">Battlefield</span><b id="sel-arena-name"></b><button class="ghost" id="sel-arena-change" data-nav>Change</button></div></div>
+        <button class="big go" id="btn-sel-next" data-nav>Next: opponents →</button>
       </div>
+    </div>
+  </section>
+
+  <!-- OPPONENTS: how many, random or hand-picked -->
+  <section id="s-opps" class="screen hidden">
+    <div class="panel flow-panel opp-panel">
+      <div class="flow-head"><button class="back" id="op-back" data-nav>← Back</button><div class="flow-title"><span class="kick">Last step</span><h2>Choose your opponents</h2></div><div class="steps" data-step="3"></div></div>
+      <div class="opp-ctl">
+        <div class="opp-count"><div class="lbl">How many opponents?</div><div class="count-btns" id="op-count"></div><div class="lbl small" id="op-total"></div></div>
+        <div class="opp-mode"><div class="lbl">Who are they?</div><div class="mode-btns" id="op-mode"><button data-v="random" data-nav><b>🎲 Random</b><small>Surprise me</small></button><button data-v="pick" data-nav><b>☝ I'll pick</b><small>Choose from all 70</small></button></div></div>
+      </div>
+      <div id="op-roll" class="op-roll"></div>
+      <div id="op-pick" class="op-pick hidden"><div class="seg small" id="op-book"></div><div id="op-grid" class="scrollable"></div></div>
+      <div class="opp-foot"><div id="op-me"></div><div id="op-status"></div><button class="big go" id="btn-op-fight" data-nav>FIGHT!</button></div>
     </div>
   </section>
 
@@ -110,6 +139,7 @@
     <div id="movelist" class="hudbox"></div>
     <div id="hud-top"><button id="btn-pause" aria-label="Pause">❚❚</button></div>
     <div id="banner"></div>
+    <div id="sig-banner"><div class="sk">SIGNATURE MOVE</div><div class="sn"></div><div class="sw"></div></div>
     <div id="toast"></div>
     <div id="hud-strip"></div>
     <div id="touch" class="hidden">
@@ -124,7 +154,7 @@
 
   <section id="s-moves" class="screen hidden"><div class="panel"><h2>Move list</h2><table id="ml-table"></table><p class="hint">Computer: A/D or ←/→ move · W/↑ or Space jump · Shift+Space high jump · S/↓ drop through platforms · J main · K combo 1 · L combo 2 · I power · U flying · O block/dodge · R recover · Tab closes this</p><button class="big go" id="btn-moves-close">Close</button></div></section>
 
-  <section id="s-end" class="screen hidden"><div class="panel"><h2 id="end-title">Victory!</h2><p id="end-text"></p><div class="row"><button class="big go" id="btn-next-round">Next round: 10 problems</button><button class="big ghost" id="btn-menu">Change difficulty</button></div></div></section>
+  <section id="s-end" class="screen hidden"><div class="panel"><h2 id="end-title">Victory!</h2><p id="end-text"></p><div class="row"><button class="big go" id="btn-next-round">Next round: 5 problems</button><button class="big ghost" id="btn-menu">Change difficulty</button></div></div></section>
 
   <button id="btn-mute-top" aria-label="Sound on or off">🔊</button>
   <div id="rotate" class="hidden">Turn your iPad sideways to play</div>
