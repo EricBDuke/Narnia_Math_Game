@@ -13,6 +13,7 @@
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
 </head>
 <body>
+<div id="menu-bg" aria-hidden="true"></div>
 <canvas id="c"></canvas>
 <div id="ui">
 
@@ -73,6 +74,8 @@
   </section>
 
   <!-- MATH RESULT -->
+  <section id="s-load" class="screen hidden"><div class="panel load-panel"><div class="load-kicker">Preparing the battle</div><h2 id="load-title">Loading…</h2><div class="load-track"><i id="load-bar"></i></div><p class="hint"><span id="load-sub"></span> <span id="load-pct"></span></p></div></section>
+
   <section id="s-mresult" class="screen hidden">
     <div class="panel">
       <h2 id="mr-title">7 / 10</h2>
@@ -85,7 +88,7 @@
   <!-- FIGHTER + ARENA SELECT -->
   <section id="s-select" class="screen hidden">
     <div class="sel-left panel">
-      <div class="sel-head"><h2>Choose your fighter</h2><div class="seg small" id="sel-book"></div></div>
+      <div class="sel-head"><div class="sel-title"><h2>Choose your fighter</h2><div class="seg small" id="sel-pool"><button data-v="starters">10 Starters</button><button data-v="all">All 70</button></div></div><div class="seg small" id="sel-book"></div></div>
       <div id="grid"></div>
     </div>
     <div class="sel-right">
@@ -101,27 +104,29 @@
     </div>
   </section>
 
-  <!-- HUD -->
+  <!-- HUD: bottom strip (portrait, name, damage %, lives) for all 6 fighters; move list always visible in the top-left corner -->
   <section id="s-hud" class="hidden">
-    <div id="hud-me" class="hudbox"><div class="portrait"></div><div class="info"><div class="name"></div><div class="bar hp"><i></i></div><div class="bar pw"><i></i><span>POWER</span></div><div class="lives"></div></div></div>
-    <div id="hud-top"><button id="btn-pause" aria-label="Pause">❚❚</button><div id="hud-foes"></div></div>
+    <div id="flash"></div>
     <div id="movelist" class="hudbox"></div>
+    <div id="hud-top"><button id="btn-pause" aria-label="Pause">❚❚</button></div>
     <div id="banner"></div>
     <div id="toast"></div>
+    <div id="hud-strip"></div>
     <div id="touch" class="hidden">
       <div id="stick"><div class="knob"></div></div>
       <div id="tbtns"></div>
     </div>
-    <div id="cam-hint">Drag to turn the camera</div>
+    <div id="cam-hint"></div>
   </section>
 
   <section id="s-pause" class="screen hidden"><div class="panel"><h2>Paused</h2>
     <div class="col"><button class="big go" id="btn-resume">Resume</button><button class="big ghost" id="btn-moves">Move list</button><button class="big ghost" id="btn-quit">Quit round</button><button class="big ghost" id="btn-mute">Sound: On</button></div></div></section>
 
-  <section id="s-moves" class="screen hidden"><div class="panel"><h2>Move list</h2><table id="ml-table"></table><p class="hint">Computer: WASD/arrows move · Space jump · Shift+Space high jump · Q/E or mouse-drag turn camera · mouse wheel zoom · Tab close</p><button class="big go" id="btn-moves-close">Close</button></div></section>
+  <section id="s-moves" class="screen hidden"><div class="panel"><h2>Move list</h2><table id="ml-table"></table><p class="hint">Computer: A/D or ←/→ move · W/↑ or Space jump · Shift+Space high jump · S/↓ drop through platforms · J main · K combo 1 · L combo 2 · I power · U flying · O block/dodge · R recover · Tab closes this</p><button class="big go" id="btn-moves-close">Close</button></div></section>
 
   <section id="s-end" class="screen hidden"><div class="panel"><h2 id="end-title">Victory!</h2><p id="end-text"></p><div class="row"><button class="big go" id="btn-next-round">Next round: 10 problems</button><button class="big ghost" id="btn-menu">Change difficulty</button></div></div></section>
 
+  <button id="btn-mute-top" aria-label="Sound on or off">🔊</button>
   <div id="rotate" class="hidden">Turn your iPad sideways to play</div>
   <div id="loading">Loading Narnia…</div>
 </div>
