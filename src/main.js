@@ -10,6 +10,7 @@ import { buildPlaceholder, animateRig } from './models.js';
 import { FX } from './fx.js';
 import { applyArtMap, setArtRegistry, artUrl, artPaths, makeBillboard } from './sprites.js';
 import { attachSignatures } from './signature.js';
+import { loadSigArt, SA } from './sigart.js';
 import { assetUrl, setAssetMode, progress, resetProgress } from './assets.js';
 import { sfx, unlockAudio, setMuted, isMuted, startMusic, stopMusic, audioState, audioLevel } from './audio.js';
 const inputState = new InputState(); // keyboard + touch write here; LocalController feeds it to the player's fighter
@@ -38,7 +39,7 @@ addEventListener('resize', resize);
 let fx = null;
 
 // ---------- screens ----------
-let screen = 'title';
+let screen = 'boot';
 let MENU_BG = false; const MENU_SCREENS = ['title', 'select', 'math', 'mresult', 'load', 'welcome', 'arena', 'opps'];
 function syncMenuBg() { const on = MENU_BG && MENU_SCREENS.includes(screen) && activeScene === previewScene; $('#menu-bg').classList.toggle('on', on); $('#menu-bg').dataset.s = screen; previewScene.background = on ? null : previewBgColor; previewScene.fog = on ? null : previewFog; lowpoly.visible = !on; menuBlob.visible = on; document.body.classList.toggle('menu-art', on); }
 function applyPreviewVis() { const showF = !['welcome', 'arena', 'opps'].includes(screen); if (previewBB) previewBB.root.visible = showF; if (previewRig) previewRig.root.visible = showF && !previewBB; if (!showF) menuBlob.visible = false; }
@@ -149,6 +150,7 @@ function poolList() { return FIGHTERS; }
 const BOOK_IDS = ['mn', 'lww', 'hhb', 'pc', 'vdt', 'sc', 'lb'];
 const BOOK_TITLES = BOOK_IDS.map((_, i) => ARENAS[i * 2].book);
 const arenasOfBook = (bi) => ARENAS.filter(a => a.book === BOOK_TITLES[bi]);
+const bookCardArt = (bi) => { const p = MANIFEST.ui?.bookCards?.[bi]; return p ? assetUrl(p).replace(/'/g, '%27').replace(/"/g, '%22') : null; };
 const arenaThumb = (a) => { const m = MANIFEST.arenas?.[a.id]; if (!m) return null; return (MANIFEST.webp ? assetUrl(`art/thumbs/${a.id}.png`) : assetUrl(m.back)).replace(/'/g, '%27').replace(/"/g, '%22'); };
 const bookOf = (f) => BOOK_IDS.indexOf(f.bookId);
 const STEPS = ['Battlefield', 'Fighter', 'Opponents'];
@@ -169,7 +171,7 @@ function toArena(book = arBook) {
   const books = $('#ar-books'), ars = $('#ar-arenas'); books.classList.toggle('hidden', book !== null); ars.classList.toggle('hidden', book === null);
   if (book === null) {
     $('#ar-kick').textContent = 'Step 1 · Battlefield'; $('#ar-title').textContent = 'Which book?';
-    books.innerHTML = BOOK_IDS.map((id, bi) => { const as = arenasOfBook(bi), th = arenaThumb(as[0]), fs = FIGHTERS.filter(f => f.bookId === id).slice(0, 3);
+    books.innerHTML = BOOK_IDS.map((id, bi) => { const as = arenasOfBook(bi), th = bookCardArt(bi) || arenaThumb(as[0]), fs = FIGHTERS.filter(f => f.bookId === id).slice(0, 3);
       return `<button class="bk" data-bi="${bi}" data-nav><span class="bk-art" style="${th ? `background-image:url('${th}')` : ''}"></span><span class="bk-shade"></span><span class="bk-num">${bi + 1}</span>
         <span class="bk-faces">${fs.map(f => `<img alt="" src="${portraitFor(f)}">`).join('')}</span><span class="bk-name">${BOOK_TITLES[bi]}</span><span class="bk-sub">${as.length} arenas · ${FIGHTERS.filter(f => f.bookId === id).length} fighters</span></button>`; }).join('');
     $$('#ar-books .bk').forEach(c => c.onclick = () => { clickSfx(); toArena(+c.dataset.bi); });
@@ -376,7 +378,7 @@ function updateHUD() {
     if (c.pw) { c.pw.style.width = f.power + '%'; c.pwb.classList.toggle('full', f.power >= 100); }
     if (c.sg) { c.sg.style.width = f.sigMeter + '%'; const full = f.sigMeter >= 100; c.sgb.classList.toggle('full', full); el.classList.toggle('sigready', full); if (full !== c.sigFull) { c.sigFull = full; c.sgb.querySelector('span').textContent = full ? (f.isPlayer && !IS_TOUCH ? 'SIGNATURE · P' : 'SIGNATURE!') : 'SIGNATURE'; } }
   }
-  const sb = document.querySelector('.tb[data-a="signature"]'); if (sb) { const full = player.sigMeter >= 100 && !player.dead; sb.classList.toggle('show', full); sb.classList.toggle('ready', full); }
+  const sb = document.querySelector('.tb[data-a="signature"]'); if (sb) { const full = player.sigMeter >= 100 && !player.dead; sb.classList.toggle('ready', full); sb.style.setProperty('--p', Math.round(Math.min(100, player.sigMeter)) + '%'); }
   const pb = document.querySelector('.tb[data-a="power"]'); if (pb) pb.classList.toggle('ready', player.power >= 100);
   const rb = document.querySelector('.tb[data-a="recover"]'); if (rb) rb.classList.toggle('pulse', !player.onGround && !player.recoverUsed && player.pos.y < -1);
 }
@@ -576,6 +578,9 @@ if (params.get('debug') === '1') Object.assign(window.__nmb, {
   if (MANIFEST.menuBackground) { // painted menu background (title / select / math): optional, the 3D preview scene stays when the file is missing
     await new Promise(res => { const im = new Image(); const to = setTimeout(res, 6000); im.onload = () => { clearTimeout(to); $('#menu-bg').style.backgroundImage = `url('${assetUrl(MANIFEST.menuBackground)}')`; MENU_BG = true; res(); }; im.onerror = () => { clearTimeout(to); res(); }; im.src = assetUrl(MANIFEST.menuBackground); });
   }
+  const ui = MANIFEST.ui || {};
+  if (ui.welcomeBg) await new Promise(res => { const im = new Image(), to = setTimeout(res, 6000); im.onload = () => { clearTimeout(to); document.documentElement.style.setProperty('--welcome-bg', `url("${assetUrl(ui.welcomeBg)}")`); document.body.classList.add('has-welcome-bg'); res(); }; im.onerror = () => { clearTimeout(to); res(); }; im.src = assetUrl(ui.welcomeBg); });
+  await loadSigArt(MANIFEST);
   if (MANIFEST.aslanPortrait) { const lion = document.querySelector('#aslan .lion'); if (lion) lion.innerHTML = `<img src="${assetUrl(MANIFEST.aslanPortrait)}" alt="Aslan" style="width:100%;height:100%;object-fit:cover;object-position:50% 12%;border-radius:50%;box-shadow:0 0 0 2px #e8b84a,0 2px 10px rgba(0,0,0,.5);background:radial-gradient(#f4d98a,#a8691f)">`; } // the artist's portrait replaces the code-drawn one when it exists syncMute();
   resize(); toTitle(); $('#loading').classList.add('hidden'); requestAnimationFrame(loop);
   if (IS_TOUCH) $('#title-hint').textContent = 'iPad: use the number pad for answers. In battle: joystick on the left, move buttons on the right.';

@@ -272,3 +272,27 @@ button.go.dim, button.go:disabled { filter:grayscale(.85) brightness(.65); curso
 #op-status { flex:1; text-align:center; font-size:16px; color:var(--gold2); } #op-status.flash { animation: stflash .6s; } @keyframes stflash { 30% { color:#fff; transform:scale(1.06) } }
 @media (max-height: 800px) { .flow-head { margin-bottom:8px; } .flow-title h2 { font-size:26px; } .welcome { padding:16px 24px; } .welcome .big { margin-top:14px; } .opp-ctl { margin-bottom:6px; } .count-btns button { width:50px; height:50px; font-size:24px; } .rc img { width:76px; height:76px; } .rc { width:108px; } .bk { height:clamp(120px, 24vh, 170px); } }
 body.touch .bk { height:clamp(120px, 24vh, 170px); }
+
+/* ---- painted art: welcome background, book cards, signature banner frame + button ---- */
+body.has-welcome-bg #menu-bg[data-s="welcome"] { background-image:var(--welcome-bg) !important; background-position:50% 55%; }
+#menu-bg[data-s="welcome"]::after { background:
+  radial-gradient(ellipse 62% 58% at 50% 52%, rgba(5,8,18,.62) 0%, rgba(5,8,18,.4) 55%, rgba(5,8,18,0) 100%),
+  radial-gradient(ellipse at 50% 50%, rgba(4,7,16,0) 50%, rgba(4,7,16,.4) 100%), linear-gradient(180deg, rgba(0,0,0,.3), rgba(0,0,0,0) 22%), linear-gradient(0deg, rgba(0,0,0,.35), rgba(0,0,0,0) 30%); }
+.welcome::before { background:radial-gradient(ellipse at 50% 50%, rgba(5,8,18,.7) 0%, rgba(5,8,18,.48) 48%, rgba(5,8,18,0) 74%); }
+.bk-shade { background:linear-gradient(180deg, rgba(6,9,22,0) 38%, rgba(6,9,22,.55) 66%, rgba(6,9,22,.9) 100%); }
+body.sig-frame #sig-banner { top:9%; display:flex; justify-content:center; }
+body.sig-frame #sig-banner .sb-in { position:relative; width:min(94vw, 1180px); aspect-ratio:1200/225; background:var(--sig-frame) center / 100% 100% no-repeat; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 8%; }
+body.sig-frame #sig-banner .sb-in::before { content:''; position:absolute; left:6.5%; right:6.5%; top:19%; bottom:19%; border-radius:14px; z-index:-1; background:radial-gradient(ellipse at 50% 50%, rgba(10,8,26,.82), rgba(10,8,26,.6)); box-shadow:0 0 40px 6px var(--sc); }
+body.sig-frame #sig-banner .sk { font-size:clamp(9px, 1.15vw, 14px); line-height:1; letter-spacing:.4em; }
+body.sig-frame #sig-banner .sn { font-size:clamp(26px, 4.6vw, 58px); padding:0; line-height:1.05; white-space:nowrap; max-width:100%; }
+body.sig-frame #sig-banner .sw { font-size:clamp(9px, 1.2vw, 15px); line-height:1.1; margin-top:1px; }
+/* iPad SIGNATURE button: painted emblem, dim grey while charging (with a charge ring), glowing when ready */
+body.sig-art .tb[data-a="signature"] { display:flex; background:none; border:none; color:#fff; box-shadow:none; animation:none; transform:none; overflow:visible; }
+body.sig-art .tb[data-a="signature"]::before { content:''; position:absolute; inset:-7px; border-radius:50%; z-index:-1; background:conic-gradient(#ffd45a var(--p, 0%), rgba(255,255,255,.18) 0); -webkit-mask:radial-gradient(circle, transparent calc(50% - 1px), #000 calc(50% - 0px)); mask:radial-gradient(circle, transparent calc(50% - 1px), #000 calc(50% - 0px)); }
+body.sig-art .tb[data-a="signature"] b, body.sig-art .tb[data-a="signature"] em { display:none; }
+body.sig-art .tb[data-a="signature"] small { position:absolute; left:50%; bottom:-9px; transform:translateX(-50%); background:rgba(10,8,26,.9); border:1px solid rgba(246,215,126,.7); border-radius:10px; padding:1px 8px; font-size:10px; letter-spacing:.08em; color:#ffe9a0; white-space:nowrap; }
+body.sig-art .tb[data-a="signature"]::after { content:''; position:absolute; inset:0; border-radius:50%; background:#10142a var(--sig-btn) center / 100% 100% no-repeat; filter:grayscale(.95) brightness(.5); pointer-events:none; }
+body.sig-art .tb[data-a="signature"].ready::after { filter:none; }
+body.sig-art .tb[data-a="signature"].ready { animation: sigbtn2 .55s infinite alternate; }
+@keyframes sigbtn2 { from { transform:scale(1); box-shadow:0 0 14px 4px rgba(255,200,90,.7) } to { transform:scale(1.1); box-shadow:0 0 34px 12px rgba(255,225,130,1) } }
+body.sig-art .tb[data-a="signature"].ready small { background:linear-gradient(#f6d77e,#c98d1c); color:#2a1a00; }

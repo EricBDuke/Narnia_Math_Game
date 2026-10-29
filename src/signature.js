@@ -4,6 +4,7 @@
 // Each def: [name, kind (timeline shape), motif (effect look), colour, second colour, sound flavour, one-line description, extras]
 //   kinds: charge | nova | beam | volley | slam | whirl | rush | dive | storm        motifs: roar | frost | blades | quake | volley | wind | fire | star | nature | shadow | sea
 import { sfx } from './audio.js';
+import { SA, spriteFx, windSprite, spriteFor } from './sigart.js';
 
 const G = 0xffd45a, W = 0xffffff;
 export const SIG = {
@@ -120,6 +121,7 @@ const rnd = (a, b) => a + Math.random() * (b - a);
 // per-frame while the cinematic winds up: p = 0..1 (light gathers, motif-flavoured)
 export function windupFx(world, f, d, p, dt) {
   const fx = world.fx, x = f.pos.x, y = f.pos.y, cy = f.center, z = f.pos.z;
+  if (!f.sigWS && SA.ready) { f.sigWS = windSprite(fx, f, spriteFor(d.motif), { color: d.c, size: 8.5, spin: 1.1, opacity: 0.8 }); f.sigWS2 = windSprite(fx, f, 'star', { color: d.c2, size: 5.5, spin: -2.2, opacity: 0.7 }); }
   if (Math.random() < dt * 40) fx.embers(x, y + 0.2, z, 2, Math.random() < 0.5 ? d.c : d.c2, f.radius * 2.4);
   if (Math.random() < dt * 14) { const a = rnd(0, 6.28), r = 2.8 * (1 - p) + 0.6; fx.spark(x + Math.cos(a) * r, cy + Math.sin(a) * r * 0.9, z, 1, d.c2, 0.5, 0.24, 0.35, 0); }
   if (Math.random() < dt * 4) fx.groundRing(x, y, z, 1.2 + 4 * p, d.c, 0.35);
@@ -131,7 +133,16 @@ export function windupFx(world, f, d, p, dt) {
 // the big effect at the start of the strike: every motif has its own shape, built from the colours and the sound flavour of that fighter
 export function burstFx(world, f, d) {
   const fx = world.fx, x = f.pos.x, y = f.pos.y, cy = f.center, z = f.pos.z, fc = f.face, c = d.c, c2 = d.c2;
-  fx.flash(x, cy, z, 9, W, 0.35); fx.flash(x, cy, z, 6, c, 0.45); fx.glow(x, cy, z, 9, c, 0.6); fx.shock(x, cy, z, 8, c, 0.55); fx.groundRing(x, y, z, 12, c2, 0.7);
+  for (const k of ['sigWS', 'sigWS2']) if (f[k]) { f[k].fadeOut = 1; f[k] = null; }
+  if (SA.ready) { // painted effect sprites: the main motif big behind and in front, a star flash, and a ground burst for the heavy kinds
+    const sp = spriteFor(d.motif);
+    spriteFx(fx, sp, x, cy, z, { size: 7, grow: 1.4, s0: 0.3, spin: 1.2, life: 0.9, color: c, k: 0.3 });
+    spriteFx(fx, sp, x + fc * 5, cy, z, { size: 4.5, grow: 1.5, s0: 0.3, spin: -1.1, life: 0.75, color: c2, k: 0.3, delay: 0.1 });
+    spriteFx(fx, 'star', x, cy, z, { size: 7, grow: 1.15, s0: 0.2, spin: 0.5, life: 0.35, color: c2, k: 0.4, opacity: 0.6 });
+    if (d.kind === 'slam' || d.motif === 'quake') spriteFx(fx, 'earth', x + fc * 2, y + 1.6, z, { size: 5.5, grow: 1.3, s0: 0.5, spin: 0, life: 0.9, color: c, k: 0.15, delay: 0.2 });
+    if (d.kind === 'volley') for (let i = 0; i < 4; i++) spriteFx(fx, 'blades', x + fc * (3 + i * 3), y + 2, z, { size: 8, grow: 1.4, s0: 0.4, life: 0.6, color: i % 2 ? c : c2, delay: 0.1 + i * 0.1 });
+  }
+  fx.flash(x, cy, z, 9, W, 0.35); fx.flash(x, cy, z, 6, c, 0.45); fx.flash(x, cy, z, 9, c2, 0.15); fx.glow(x, cy, z, 9, c, 0.6); fx.shock(x, cy, z, 8, c, 0.55); fx.groundRing(x, y, z, 12, c2, 0.7);
   const rays = (n, len, w, col) => { for (let i = 0; i < n; i++) { const a = i / n * 6.283 + rnd(-0.1, 0.1); fx.beam(x, cy, x + Math.cos(a) * len, cy + Math.sin(a) * len, z, col, w, 0.4); } };
   switch (d.motif) {
     case 'roar': fx.shock(x, cy, z, 13, c2, 0.7); fx.shock(x, cy, z, 18, c, 0.9); rays(12, 10, 0.5, c); fx.dustPuff(x, y, z, 14, 0xe8d8b0, 1.2); break;
