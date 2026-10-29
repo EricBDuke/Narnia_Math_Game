@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { FIGHTERS } from './fighters.js';
 import { ARENAS, buildArena, setArenaArt } from './arenas.js';
 import { DIFFICULTIES, GATE, makeSet, check, hint, explain } from './math.js';
-import { aslanLine, aslanAny } from './narration.js';
+import { aslanLine, welcomeLine } from './narration.js';
 import { World, Fighter, SLOT_INFO } from './combat.js';
 import { InputState, LocalController, AIController, AI_LEVELS } from './controllers.js';
 import { buildPlaceholder, animateRig } from './models.js';
@@ -159,7 +159,7 @@ const clickSfx = () => { try { sfx.click(); } catch (e) {} };
 
 // ---- Welcome ----
 function toWelcome() {
-  show('welcome'); hideAslan(); drawSteps(); const l = aslanAny(); $('#wl-quote').textContent = l.text; $('#wl-src').textContent = '— ' + l.source;
+  show('welcome'); hideAslan(); drawSteps(); const l = welcomeLine(); $('#wl-quote').textContent = l.text; $('#wl-src').textContent = '— ' + l.source;
   if (MANIFEST.aslanPortrait) $('#wl-lion').src = assetUrl(MANIFEST.aslanPortrait); setScene(previewScene); setTimeout(() => $('#btn-wl-continue').focus({ preventScroll: true }), 50);
 }
 $('#btn-wl-continue').onclick = () => { clickSfx(); toArena(null); };
