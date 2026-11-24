@@ -1,52 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Working With Clients – Read Along</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Working With Clients — Read-Along</title>
 <style>
-  * { box-sizing: border-box; }
-  html, body { margin: 0; min-height: 100%; }
-  body {
-    font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
-    background: #fbfaf7;
-    color: #22211f;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
-  }
-  main { width: 100%; max-width: 28rem; text-align: center; }
-  h1 {
-    font-size: 1.75rem;
-    font-weight: 650;
-    line-height: 1.25;
-    margin: 0 0 1.5rem;
-  }
-  a {
-    display: block;
-    padding: 1.25rem 1.25rem;
-    font-size: 1.35rem;
-    font-weight: 650;
-    line-height: 1.3;
-    text-decoration: none;
-    color: #fbfaf7;
-    background: #2f5d50;
-    border-radius: 14px;
-    min-height: 64px;
-  }
-  a:active { background: #244a40; }
-  @media (prefers-color-scheme: dark) {
-    body { background: #161615; color: #ecebe8; }
-    a { color: #161615; background: #8fc9b4; }
-    a:active { background: #a9d8c7; }
-  }
-</style>
-</head>
+:root{--bg:#fbfaf7;--fg:#22211f;--mut:#888;--acc:#2f5d50;--card:#fff}
+@media (prefers-color-scheme: dark){:root{--bg:#161615;--fg:#ecebe8;--mut:#9a9893;--acc:#8fc9b4;--card:#202020}}
+body{font-family:-apple-system,system-ui,sans-serif;max-width:640px;margin:0 auto;padding:28px 18px 60px;background:var(--bg);color:var(--fg)}
+h1{font-size:26px;color:var(--acc);margin:18px 0 4px} p.sub{color:var(--mut);margin:0 0 18px;font-size:15px}
+a{display:block;font-size:19px;line-height:1.3;padding:15px 16px;margin:10px 0;border:1px solid rgba(127,127,127,.3);border-radius:14px;text-decoration:none;color:var(--fg);background:var(--card)}
+.n{display:inline-block;min-width:36px;color:var(--acc);font-weight:700}
+small{color:var(--mut);display:block;margin:4px 0 0 36px;font-size:14px}
+a.top{background:var(--acc);color:var(--bg);border-color:var(--acc);font-weight:700;margin:0 0 10px} a.top small{color:var(--bg);opacity:.85;margin-left:0}
+a.step small{margin-left:0}
+</style></head>
 <body>
-<main>
-  <h1>Working With Clients – Read Along</h1>
-  <a href="Agreements.html">Read along</a>
-</main>
-</body>
-</html>
+<a class="top" href="what-to-ask.html">What to Ask (Mom's project)<small>Questions for the first meeting · tick and take notes</small></a>
+<a class="step" href="steps.html">Every Step<small>The whole module process, in order · 48 steps</small></a>
+<h1>Working With Clients</h1><p class="sub">Read-along audio · tap a section, then Play. Speed up to 3×.</p>
+<a href="Agreements.html"><span class="n">1</span>Agreements<small>Pages 42–50 · 14 min at 1×</small></a>
+<a href="Useful-Programs.html"><span class="n">2</span>Useful Programs<small>Page 51 · 2 min at 1×</small></a>
+<a href="AI-Responsibilities.html"><span class="n">3</span>Professional, Ethical and Legal Responsibilities When Using AI<small>Pages 52–60 · 12 min at 1×</small></a>
+<a href="Framework-for-Responsible-AI.html"><span class="n">4</span>A Professional Framework for Responsible AI Use<small>Page 61 · 1 min at 1×</small></a>
+<a href="Professional-Practice-Principle.html"><span class="n">5</span>Professional Practice Principle<small>Page 62 · 1 min at 1×</small></a>
+<a href="The-Design-Process.html"><span class="n">6</span>The Design Process: How to Approach a Design Project<small>Pages 63–65 · 1 min at 1×</small></a>
+<a href="Phase-1-Discover.html"><span class="n">7</span>Phase 1 – Discover<small>Pages 66–71 · 10 min at 1×</small></a>
+<a href="Phase-2-Plan.html"><span class="n">8</span>Phase 2 – Plan<small>Pages 72–77 · 10 min at 1×</small></a>
+<a href="Phase-3-Implement.html"><span class="n">9</span>Phase 3 – Implement<small>Pages 78–83 · 8 min at 1×</small></a>
+<a href="Assignment-Ten.html"><span class="n">10</span>Assignment Ten<small>Pages 84–94 · 11 min at 1×</small></a>
+</body></html>

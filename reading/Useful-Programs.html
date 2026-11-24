@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Working With Clients — Useful Programs</title>
+<style>
+  :root { --bg:#fbfaf7; --fg:#22211f; --read:#a3a09a; --hl:#ffd54a; --accent:#2f5d50; --bar:#ffffff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#161615; --fg:#ecebe8; --read:#6c6a66; --hl:#c99a00; --accent:#8fc9b4; --bar:#202020; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; background:var(--bg); color:var(--fg); }
+  body { font-family: Georgia, "Iowan Old Style", "Times New Roman", serif; -webkit-text-size-adjust:100%; }
+  header { padding: 18px 20px 6px; max-width: 760px; margin: 0 auto; }
+  header h1 { font: 600 20px/1.3 -apple-system, system-ui, sans-serif; margin:0; color:var(--accent); }
+  main { max-width: 760px; margin: 0 auto; padding: 0 20px 55vh; font-size: 23px; line-height: 1.65; }
+  h2 { font: 700 19px/1.4 -apple-system, system-ui, sans-serif; letter-spacing:.06em; margin: 1.4em 0 .4em; }
+  p { margin: 0 0 .8em; }
+  ul { margin: 0 0 .8em; padding-left: 1.2em; }
+  li { margin-bottom: .45em; }
+  .pm { display:flex; align-items:center; gap:10px; margin: 1.6em 0 .8em; font: 600 13px/1 -apple-system, system-ui, sans-serif;
+        text-transform: uppercase; letter-spacing:.12em; color: var(--accent); }
+  .pm::before, .pm::after { content:""; flex:1; height:1px; background: currentColor; opacity:.35; }
+  .w { cursor:pointer; border-radius:5px; padding: 0 1px; transition: color .15s; }
+  .w.r, .x.r { color: var(--read); }
+  .w.cur { background: var(--hl); color: #111; box-shadow: 0 0 0 3px var(--hl); }
+  .bar { position: sticky; top: 0; z-index: 5; background: var(--bar); border-bottom: 1px solid rgba(127,127,127,.25);
+         box-shadow: 0 2px 10px rgba(0,0,0,.06); font-family: -apple-system, system-ui, sans-serif; }
+  .bar .in { max-width: 760px; margin: 0 auto; padding: 10px 16px; display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+  button { font: 600 16px/1 -apple-system, system-ui, sans-serif; border:1px solid rgba(127,127,127,.35); background:transparent;
+           color:var(--fg); border-radius: 999px; padding: 10px 14px; min-height:44px; cursor:pointer; }
+  #play { background: var(--accent); color: var(--bg); border-color: var(--accent); min-width: 92px; }
+  .speeds { display:flex; gap:4px; }
+  .speeds button { padding: 10px 10px; min-width: 50px; }
+  .speeds button.on { background: var(--fg); color: var(--bg); }
+  .prog { flex: 1 1 100%; display:flex; align-items:center; gap:10px; font-size: 13px; color: var(--read); }
+  .prog input { flex:1; accent-color: var(--accent); }
+  .nav { font: 600 15px/1.4 -apple-system, system-ui, sans-serif; margin: 0 0 6px; }
+  .nav a { color: var(--accent); text-decoration: none; }
+  .navb { margin-top: 2.5em; font: 600 18px/1.4 -apple-system, system-ui, sans-serif; }
+  .navb a { display:block; padding: 16px 18px; border:1px solid rgba(127,127,127,.35); border-radius: 14px; color: var(--accent); text-decoration:none; margin-bottom: 10px; }
+  .diag { font: italic 16px/1.4 -apple-system, system-ui, sans-serif; color: var(--read); margin: 0 0 1em; }
+  #follow { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); display:none; background: var(--accent);
+            color: var(--bg); border-color: var(--accent); box-shadow: 0 4px 14px rgba(0,0,0,.2); z-index: 6; }
+</style>
+</head>
+<body>
+<div class="bar"><div class="in">
+  <button id="play" aria-label="Play">▶ Play</button>
+  <button id="back" aria-label="Back 10 seconds">↺ 10</button>
+  <div class="speeds" id="speeds"></div>
+  <div class="prog"><span id="tcur">0:00</span><input id="seek" type="range" min="0" max="1000" value="0" aria-label="Seek"><span id="tdur">0:00</span></div>
+</div></div>
+<header><div class="nav"><a href="index.html">← All sections</a></div><h1>Working With Clients — Useful Programs</h1></header>
+<main id="text">
+<div class="pm" id="page-51"><span>Page 51</span></div>
+<h2><span class="w" data-i="0">USEFUL</span> <span class="w" data-i="1">PROGRAMS</span></h2>
+<p><span class="w" data-i="2">There</span> <span class="w" data-i="3">are</span> <span class="w" data-i="4">many</span> <span class="w" data-i="5">programs</span> <span class="w" data-i="6">on</span> <span class="w" data-i="7">the</span> <span class="w" data-i="8">market</span> <span class="w" data-i="9">that</span> <span class="w" data-i="10">will</span> <span class="w" data-i="11">help</span> <span class="w" data-i="12">you</span> <span class="w" data-i="13">create</span> <span class="w" data-i="14">contracts,</span> <span class="w" data-i="15">agreements,</span> <span class="w" data-i="16">invoices,</span> <span class="w" data-i="17">etc.,</span> <span class="w" data-i="18">and</span> <span class="w" data-i="19">we</span> <span class="w" data-i="20">recommend</span> <span class="w" data-i="21">you</span> <span class="w" data-i="22">use</span> <span class="w" data-i="23">one</span> <span class="w" data-i="24">that</span> <span class="w" data-i="25">caters</span> <span class="w" data-i="26">to</span> <span class="w" data-i="27">your</span> <span class="w" data-i="28">needs.</span> <span class="w" data-i="29">Using</span> <span class="w" data-i="30">the</span> <span class="w" data-i="31">best</span> <span class="w" data-i="32">interior</span> <span class="w" data-i="33">design</span> <span class="w" data-i="34">software</span> <span class="w" data-i="35">will</span> <span class="w" data-i="36">go</span> <span class="w" data-i="37">a</span> <span class="w" data-i="38">long</span> <span class="w" data-i="39">way</span> <span class="w" data-i="40">toward</span> <span class="w" data-i="41">helping</span> <span class="w" data-i="42">you</span> <span class="w" data-i="43">achieve</span> <span class="w" data-i="44">success.</span> <span class="w" data-i="45">Not</span> <span class="w" data-i="46">only</span> <span class="w" data-i="47">can</span> <span class="w" data-i="48">the</span> <span class="w" data-i="49">right</span> <span class="w" data-i="50">program</span> <span class="w" data-i="51">or</span> <span class="w" data-i="52">app</span> <span class="w" data-i="53">make</span> <span class="w" data-i="54">it</span> <span class="w" data-i="55">easier</span> <span class="w" data-i="56">to</span> <span class="w" data-i="57">deliver</span> <span class="w" data-i="58">top-notch</span> <span class="w" data-i="59">results,</span> <span class="w" data-i="60">but</span> <span class="w" data-i="61">it</span> <span class="w" data-i="62">can</span> <span class="w" data-i="63">also</span> <span class="w" data-i="64">streamline</span> <span class="w" data-i="65">your</span> <span class="w" data-i="66">business’s</span> <span class="w" data-i="67">day-to-day</span> <span class="w" data-i="68">operations.</span> <span class="w" data-i="69">To</span> <span class="w" data-i="70">start</span> <span class="w" data-i="71">out,</span> <span class="w" data-i="72">you</span> <span class="w" data-i="73">can</span> <span class="w" data-i="74">use</span> <span class="w" data-i="75">Word,</span> <span class="w" data-i="76">Canva</span> <span class="w" data-i="77">or</span> <span class="w" data-i="78">InDesign</span> <span class="w" data-i="79">to</span> <span class="w" data-i="80">create</span> <span class="w" data-i="81">proposals</span> <span class="w" data-i="82">and</span> <span class="w" data-i="83">Excel</span> <span class="w" data-i="84">(or</span> <span class="w" data-i="85">equivalent)</span> <span class="w" data-i="86">to</span> <span class="w" data-i="87">create</span> <span class="w" data-i="88">spreadsheets.</span> <span class="w" data-i="89">There</span> <span class="w" data-i="90">are</span> <span class="w" data-i="91">many</span> <span class="w" data-i="92">other</span> <span class="w" data-i="93">programs</span> <span class="w" data-i="94">that</span> <span class="w" data-i="95">you</span> <span class="w" data-i="96">can</span> <span class="w" data-i="97">use,</span> <span class="w" data-i="98">and</span> <span class="w" data-i="99">one</span> <span class="w" data-i="100">particular</span> <span class="w" data-i="101">program</span> <span class="w" data-i="102">we</span> <span class="w" data-i="103">recommend</span> <span class="w" data-i="104">is</span> <span class="w" data-i="105">Houzz</span> <span class="w" data-i="106">Pro.</span></p>
+<p><span class="w" data-i="107">Houzz</span> <span class="w" data-i="108">Pro</span> <span class="w" data-i="109">is</span> <span class="w" data-i="110">the</span> <span class="w" data-i="111">fastest</span> <span class="w" data-i="112">growing</span> <span class="w" data-i="113">business</span> <span class="w" data-i="114">management</span> <span class="w" data-i="115">platform</span> <span class="w" data-i="116">for</span> <span class="w" data-i="117">design</span> <span class="w" data-i="118">firms.</span> <span class="w" data-i="119">It</span> <span class="w" data-i="120">brings</span> <span class="w" data-i="121">the</span> <span class="w" data-i="122">trade</span> <span class="w" data-i="123">industry</span> <span class="w" data-i="124">into</span> <span class="w" data-i="125">the</span> <span class="w" data-i="126">modern</span> <span class="w" data-i="127">age</span> <span class="w" data-i="128">by</span> <span class="w" data-i="129">streamlining</span> <span class="w" data-i="130">and</span> <span class="w" data-i="131">automating</span> <span class="w" data-i="132">a</span> <span class="w" data-i="133">design</span> <span class="w" data-i="134">firm’s</span> <span class="w" data-i="135">workflow</span> <span class="w" data-i="136">and</span> <span class="w" data-i="137">business</span> <span class="w" data-i="138">operations</span> <span class="w" data-i="139">including</span> <span class="w" data-i="140">procurement,</span> <span class="w" data-i="141">client</span> <span class="w" data-i="142">billing,</span> <span class="w" data-i="143">vendor</span> <span class="w" data-i="144">purchasing</span> <span class="w" data-i="145">and</span> <span class="w" data-i="146">time</span> <span class="w" data-i="147">tracking.</span></p>
+<p><span class="w" data-i="148">It</span> <span class="w" data-i="149">allows</span> <span class="w" data-i="150">interior</span> <span class="w" data-i="151">design</span> <span class="w" data-i="152">firms</span> <span class="w" data-i="153">and</span> <span class="w" data-i="154">other</span> <span class="w" data-i="155">home</span> <span class="w" data-i="156">professionals</span> <span class="w" data-i="157">to</span> <span class="w" data-i="158">centralize</span> <span class="w" data-i="159">tasks</span> <span class="w" data-i="160">in</span> <span class="w" data-i="161">one</span> <span class="w" data-i="162">place,</span> <span class="w" data-i="163">impress</span> <span class="w" data-i="164">clients</span> <span class="w" data-i="165">with</span> <span class="w" data-i="166">beautifully</span> <span class="w" data-i="167">branded</span> <span class="w" data-i="168">documents,</span> <span class="w" data-i="169">get</span> <span class="w" data-i="170">paid</span> <span class="w" data-i="171">faster</span> <span class="w" data-i="172">by</span> <span class="w" data-i="173">invoicing</span> <span class="w" data-i="174">and</span> <span class="w" data-i="175">collecting</span> <span class="w" data-i="176">client</span> <span class="w" data-i="177">payments</span> <span class="w" data-i="178">online,</span> <span class="w" data-i="179">easily</span> <span class="w" data-i="180">clip</span> <span class="w" data-i="181">product</span> <span class="w" data-i="182">specs</span> <span class="w" data-i="183">and</span> <span class="w" data-i="184">images</span> <span class="w" data-i="185">from</span> <span class="w" data-i="186">vendors’</span> <span class="w" data-i="187">sites</span> <span class="w" data-i="188">into</span> <span class="w" data-i="189">a</span> <span class="w" data-i="190">digital</span> <span class="w" data-i="191">library</span> <span class="w" data-i="192">of</span> <span class="w" data-i="193">products</span> <span class="w" data-i="194">and</span> <span class="w" data-i="195">increase</span> <span class="w" data-i="196">productivity</span> <span class="w" data-i="197">by</span> <span class="w" data-i="198">running</span> <span class="w" data-i="199">business</span> <span class="w" data-i="200">on</span> <span class="w" data-i="201">the</span> <span class="w" data-i="202">go.</span></p>
+<p><span class="w" data-i="203">As</span> <span class="w" data-i="204">an</span> <span class="w" data-i="205">#IDIstudent,</span> <span class="w" data-i="206">you</span> <span class="w" data-i="207">can</span> <span class="w" data-i="208">enjoy</span> <span class="w" data-i="209">an</span> <span class="w" data-i="210">exclusive</span> <span class="w" data-i="211">30%</span> <span class="w" data-i="212">discount</span> <span class="w" data-i="213">on</span> <span class="w" data-i="214">Houzz</span> <span class="w" data-i="215">Pro.</span> <span class="w" data-i="216">To</span> <span class="w" data-i="217">claim</span> <span class="w" data-i="218">your</span> <span class="w" data-i="219">student</span> <span class="w" data-i="220">discount,</span> <span class="w" data-i="221">simply</span> <span class="w" data-i="222">fill</span> <span class="w" data-i="223">out</span> <span class="w" data-i="224">this</span> <span class="w" data-i="225">form.</span> <span class="w" data-i="226">Once</span> <span class="w" data-i="227">you</span> <span class="w" data-i="228">submit</span> <span class="w" data-i="229">it,</span> <span class="w" data-i="230">the</span> <span class="w" data-i="231">Houzz</span> <span class="w" data-i="232">team</span> <span class="w" data-i="233">will</span> <span class="w" data-i="234">review</span> <span class="w" data-i="235">your</span> <span class="w" data-i="236">details</span> <span class="w" data-i="237">and</span> <span class="w" data-i="238">guide</span> <span class="w" data-i="239">you</span> <span class="w" data-i="240">step</span> <span class="w" data-i="241">by</span> <span class="w" data-i="242">step</span> <span class="w" data-i="243">on</span> <span class="w" data-i="244">how</span> <span class="w" data-i="245">to</span> <span class="w" data-i="246">activate</span> <span class="w" data-i="247">your</span> <span class="w" data-i="248">discounted</span> <span class="w" data-i="249">subscription.</span></p>
+<p><span class="w" data-i="250">Below</span> <span class="w" data-i="251">are</span> <span class="w" data-i="252">some</span> <span class="w" data-i="253">other</span> <span class="w" data-i="254">useful</span> <span class="w" data-i="255">programs:</span></p>
+<p><span class="w" data-i="256">CoConstruct</span></p>
+<p><span class="w" data-i="257">Gather</span></p>
+<p><span class="w" data-i="258">Programa</span></p>
+<p><span class="w" data-i="259">Dubsado</span></p>
+<p><span class="w" data-i="260">Mydoma</span> <span class="w" data-i="261">Studio</span></p>
+<p><span class="w" data-i="262">Quickbooks</span></p>
+<p><span class="w" data-i="263">Studio</span> <span class="w" data-i="264">Designer</span></p>
+<div class="navb"><a href="AI-Responsibilities.html">Next: Professional, Ethical and Legal Responsibilities When Using AI →</a><a href="Agreements.html">← Previous: Agreements</a><a href="index.html">All sections</a></div>
+</main>
+<button id="follow">↓ Follow reading</button>
+<audio id="audio" preload="auto" src="https://files.catbox.moe/96tv74.mp3"></audio>
+<script>
+(() => {
+  const T = [[0.2, 0.575], [0.575, 1.45], [2.375, 2.488], [2.488, 2.575], [2.575, 2.8], [2.8, 3.312], [3.312, 3.413], [3.413, 3.5], [3.5, 3.875], [3.875, 3.988], [3.988, 4.1], [4.1, 4.287], [4.287, 4.4], [4.4, 4.725], [4.725, 5.425], [5.5, 6.125], [6.2, 6.75], [6.8, 7.525], [7.625, 7.737], [7.737, 7.85], [7.85, 8.275], [8.275, 8.4], [8.4, 8.625], [8.625, 8.788], [8.788, 8.925], [8.925, 9.35], [9.35, 9.438], [9.438, 9.55], [9.55, 10.2], [10.312, 10.613], [10.613, 10.7], [10.7, 10.962], [10.962, 11.438], [11.438, 11.8], [11.8, 12.312], [12.312, 12.425], [12.425, 12.6], [12.6, 12.7], [12.7, 13.0], [13.0, 13.2], [13.2, 13.5], [13.5, 13.8], [13.8, 13.95], [13.95, 14.275], [14.275, 15.025], [15.15, 15.312], [15.312, 15.55], [15.55, 15.688], [15.688, 15.775], [15.775, 16.025], [16.025, 16.525], [16.525, 16.688], [16.688, 16.95], [16.95, 17.137], [17.137, 17.262], [17.262, 17.65], [17.65, 17.75], [17.75, 18.075], [18.075, 18.575], [18.575, 19.25], [19.325, 19.462], [19.462, 19.537], [19.537, 19.65], [19.65, 20.037], [20.037, 20.613], [20.613, 20.725], [20.725, 21.3], [21.3, 21.75], [21.75, 22.825], [23.35, 23.45], [23.45, 23.75], [23.75, 23.975], [24.025, 24.175], [24.175, 24.387], [24.387, 24.7], [24.7, 25.175], [25.262, 25.825], [25.825, 26.05], [26.05, 26.725], [26.725, 26.85], [26.85, 27.2], [27.2, 27.938], [27.938, 28.075], [28.075, 28.725], [28.8, 28.95], [28.95, 29.55], [29.6, 29.725], [29.725, 30.1], [30.1, 31.025], [31.125, 31.275], [31.275, 31.387], [31.387, 31.675], [31.675, 31.95], [31.95, 32.55], [32.55, 32.7], [32.7, 32.825], [32.825, 33.038], [33.038, 33.45], [33.5, 33.638], [33.638, 33.9], [33.9, 34.5], [34.5, 35.025], [35.025, 35.175], [35.175, 35.788], [35.788, 35.95], [35.95, 36.288], [36.288, 37.175], [37.85, 38.113], [38.113, 38.538], [38.538, 38.7], [38.7, 38.85], [38.85, 39.488], [39.488, 39.988], [39.988, 40.4], [40.4, 40.925], [40.925, 41.55], [41.55, 41.675], [41.675, 42.138], [42.138, 42.9], [43.0, 43.175], [43.175, 43.5], [43.5, 43.613], [43.613, 44.013], [44.013, 44.525], [44.525, 44.725], [44.725, 44.863], [44.863, 45.3], [45.3, 45.65], [45.65, 45.875], [45.875, 46.625], [46.625, 46.8], [46.8, 47.425], [47.425, 47.5], [47.5, 47.988], [47.988, 48.363], [48.363, 48.95], [48.95, 49.088], [49.088, 49.5], [49.5, 50.25], [50.25, 50.75], [50.75, 51.5], [51.613, 52.0], [52.0, 52.525], [52.638, 53.025], [53.025, 53.688], [53.688, 53.825], [53.825, 54.15], [54.15, 55.075], [55.7, 55.825], [55.825, 56.2], [56.2, 56.75], [56.75, 57.188], [57.188, 57.6], [57.6, 57.725], [57.725, 58.025], [58.025, 58.275], [58.275, 58.875], [58.875, 59.013], [59.013, 59.6], [59.6, 60.05], [60.05, 60.2], [60.2, 60.425], [60.425, 61.025], [61.125, 61.538], [61.538, 61.988], [61.988, 62.163], [62.163, 62.625], [62.625, 62.975], [62.975, 63.75], [63.85, 64.062], [64.062, 64.438], [64.438, 64.875], [64.875, 65.075], [65.075, 65.65], [65.65, 65.775], [65.775, 66.25], [66.25, 66.575], [66.575, 66.925], [66.925, 67.675], [67.812, 68.225], [68.225, 68.475], [68.475, 68.9], [68.9, 69.325], [69.325, 69.45], [69.45, 69.875], [69.875, 70.075], [70.075, 70.725], [70.838, 71.113], [71.113, 71.35], [71.35, 71.463], [71.463, 71.875], [71.875, 72.388], [72.388, 72.475], [72.475, 73.088], [73.088, 73.213], [73.213, 73.6], [73.6, 74.375], [74.375, 74.55], [74.55, 74.875], [74.875, 75.3], [75.3, 75.438], [75.438, 75.525], [75.525, 76.25], [76.925, 77.088], [77.088, 77.2], [77.2, 78.1], [78.175, 78.325], [78.325, 78.5], [78.5, 78.95], [78.95, 79.05], [79.05, 79.75], [79.75, 80.513], [80.513, 81.025], [81.025, 81.225], [81.225, 81.513], [81.513, 82.125], [82.25, 82.375], [82.375, 82.7], [82.7, 82.85], [82.85, 83.225], [83.225, 83.75], [83.838, 84.225], [84.225, 84.463], [84.463, 84.65], [84.65, 84.888], [84.888, 85.525], [85.638, 85.875], [85.875, 86.013], [86.013, 86.425], [86.425, 86.575], [86.65, 86.788], [86.788, 87.138], [87.138, 87.475], [87.475, 87.65], [87.65, 88.0], [88.0, 88.175], [88.175, 88.8], [88.8, 88.938], [88.938, 89.275], [89.275, 89.438], [89.438, 89.75], [89.75, 89.963], [89.963, 90.288], [90.288, 90.425], [90.425, 90.612], [90.612, 90.737], [90.737, 91.25], [91.25, 91.4], [91.4, 92.025], [92.025, 93.15], [93.775, 94.125], [94.125, 94.225], [94.225, 94.363], [94.363, 94.575], [94.575, 94.975], [94.975, 95.825], [96.475, 97.5], [98.15, 98.825], [99.525, 100.425], [101.125, 102.025], [102.725, 103.15], [103.15, 103.925], [104.6, 105.375], [106.075, 106.463], [106.463, 107.2]];            // [[start, end], ...] seconds, one per word span
+  const audio = document.getElementById('audio');
+  const words = Array.from(document.querySelectorAll('.w'));
+  const xs = Array.from(document.querySelectorAll('.x'));
+  if (words.length !== T.length) console.error('word/timing mismatch', words.length, T.length);
+  const playBtn = document.getElementById('play'), seek = document.getElementById('seek');
+  const tcur = document.getElementById('tcur'), tdur = document.getElementById('tdur'), followBtn = document.getElementById('follow');
+  const STORE = 'karaoke:' + document.title;
+  ['preservesPitch','mozPreservesPitch','webkitPreservesPitch'].forEach(k => { try { audio[k] = true; } catch(e){} });
+
+  // speed selector
+  const speeds = [1, 1.5, 2, 2.5, 3], box = document.getElementById('speeds');
+  let rate = parseFloat(localStorage.getItem(STORE + ':rate')) || 1;
+  function setRate(r) {
+    rate = r; audio.playbackRate = r; audio.defaultPlaybackRate = r;
+    ['preservesPitch','mozPreservesPitch','webkitPreservesPitch'].forEach(k => { try { audio[k] = true; } catch(e){} });
+    box.querySelectorAll('button').forEach(b => b.classList.toggle('on', parseFloat(b.dataset.r) === r));
+    try { localStorage.setItem(STORE + ':rate', r); } catch(e){}
+  }
+  speeds.forEach(r => { const b = document.createElement('button'); b.textContent = r + '×'; b.dataset.r = r;
+    b.onclick = () => setRate(r); box.appendChild(b); });
+  setRate(speeds.includes(rate) ? rate : 1);
+
+  // binary search: last word whose start <= t
+  function find(t) {
+    let lo = 0, hi = T.length - 1, ans = -1;
+    while (lo <= hi) { const m = (lo + hi) >> 1; if (T[m][0] <= t) { ans = m; lo = m + 1; } else hi = m - 1; }
+    return ans;
+  }
+  // map each non-word token (bullets, &, dashes) to the word index before it, for dimming
+  const xPrev = xs.map(x => { let n = x.previousElementSibling; while (n && !n.classList.contains('w')) n = n.previousElementSibling;
+    if (n) return +n.dataset.i; let p = x; while (p && !(p.nextElementSibling)) p = p.parentElement; return -1; });
+
+  let cur = -2, readUpTo = -1, follow = true, autoScrolling = false, lastLineTop = null;
+  function setRead(n) { // mark words [0, n) as read
+    if (n > readUpTo + 1) { for (let i = readUpTo + 1; i < n; i++) words[i].classList.add('r'); }
+    else if (n < readUpTo + 1) { for (let i = n; i <= readUpTo; i++) words[i].classList.remove('r'); }
+    readUpTo = n - 1;
+    xs.forEach((x, k) => x.classList.toggle('r', xPrev[k] >= 0 && xPrev[k] < n));
+  }
+  let xTimer = 0;
+  function show(i) {
+    if (i === cur) return;
+    if (cur >= 0 && words[cur]) words[cur].classList.remove('cur');
+    cur = i;
+    // dim words fully read (before current)
+    const n = Math.max(0, i);
+    if (Math.abs(n - (readUpTo + 1)) > 0) {
+      // cheap path for forward progress; xs update throttled
+      if (n > readUpTo + 1) { for (let k = readUpTo + 1; k < n; k++) words[k].classList.add('r'); readUpTo = n - 1;
+        const now = performance.now(); if (now - xTimer > 400) { xTimer = now; xs.forEach((x, k) => x.classList.toggle('r', xPrev[k] >= 0 && xPrev[k] < n)); } }
+      else setRead(n);
+    }
+    if (i >= 0 && words[i]) { words[i].classList.add('cur'); if (follow) scrollTo(words[i]); }
+  }
+  function scrollTo(el) {
+    const r = el.getBoundingClientRect();
+    const mid = window.innerHeight / 2;
+    if (lastLineTop !== null && Math.abs(r.top - lastLineTop) < 4 && Math.abs(r.top + r.height/2 - mid) < window.innerHeight * 0.2) return;
+    lastLineTop = r.top;
+    const target = window.scrollY + r.top + r.height / 2 - mid;
+    autoScrolling = true;
+    window.scrollTo({ top: target, behavior: rate >= 2 ? 'auto' : 'smooth' });
+    clearTimeout(scrollTo._t); scrollTo._t = setTimeout(() => { autoScrolling = false; lastLineTop = el.getBoundingClientRect().top; }, 450);
+  }
+  // pause auto-follow when the user scrolls by hand
+  const userScroll = () => { if (!autoScrolling && !audio.paused) { follow = false; followBtn.style.display = 'block'; } };
+  window.addEventListener('wheel', userScroll, { passive: true });
+  window.addEventListener('touchmove', userScroll, { passive: true });
+  followBtn.onclick = () => { follow = true; followBtn.style.display = 'none'; lastLineTop = null; if (cur >= 0) scrollTo(words[cur]); };
+
+  const fmt = s => { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+  let seeking = false;
+  function tick() {
+    const t = audio.currentTime;
+    show(find(t));
+    if (!seeking && audio.duration) seek.value = Math.round(1000 * t / audio.duration);
+    tcur.textContent = fmt(t / 1);
+    if (!audio.paused) requestAnimationFrame(tick);
+  }
+  audio.addEventListener('loadedmetadata', () => { tdur.textContent = fmt(audio.duration); const s = parseFloat(localStorage.getItem(STORE + ':pos'));
+    if (s > 0 && s < audio.duration - 1) { audio.currentTime = s; } tick(); });
+  audio.addEventListener('play', () => { playBtn.textContent = '❚❚ Pause'; audio.playbackRate = rate; requestAnimationFrame(tick); });
+  audio.addEventListener('pause', () => { playBtn.textContent = '▶ Play'; tick(); try { localStorage.setItem(STORE + ':pos', audio.currentTime); } catch(e){} });
+  audio.addEventListener('seeked', tick);
+  audio.addEventListener('ended', () => { try { localStorage.removeItem(STORE + ':pos'); } catch(e){} });
+  playBtn.onclick = () => { if (audio.paused) { audio.playbackRate = rate; audio.play(); } else audio.pause(); };
+  document.getElementById('back').onclick = () => { audio.currentTime = Math.max(0, audio.currentTime - 10); tick(); };
+  seek.addEventListener('input', () => { seeking = true; if (audio.duration) { audio.currentTime = audio.duration * seek.value / 1000; tick(); } });
+  seek.addEventListener('change', () => { seeking = false; });
+  document.getElementById('text').addEventListener('click', e => {
+    const w = e.target.closest('.w'); if (!w) return;
+    const i = +w.dataset.i; audio.currentTime = T[i][0] + 0.001; follow = true; followBtn.style.display = 'none'; lastLineTop = null;
+    show(i); if (audio.paused) { audio.playbackRate = rate; audio.play(); }
+  });
+  document.addEventListener('keydown', e => { if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); playBtn.click(); } });
+  setInterval(() => { if (!audio.paused) try { localStorage.setItem(STORE + ':pos', audio.currentTime); } catch(e){} }, 5000);
+  window.__karaoke = { T, words, find };
+})();
+</script>
+</body>
+</html>

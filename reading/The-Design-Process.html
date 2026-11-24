@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Working With Clients — The Design Process: How to Approach a Design Project</title>
+<style>
+  :root { --bg:#fbfaf7; --fg:#22211f; --read:#a3a09a; --hl:#ffd54a; --accent:#2f5d50; --bar:#ffffff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#161615; --fg:#ecebe8; --read:#6c6a66; --hl:#c99a00; --accent:#8fc9b4; --bar:#202020; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; background:var(--bg); color:var(--fg); }
+  body { font-family: Georgia, "Iowan Old Style", "Times New Roman", serif; -webkit-text-size-adjust:100%; }
+  header { padding: 18px 20px 6px; max-width: 760px; margin: 0 auto; }
+  header h1 { font: 600 20px/1.3 -apple-system, system-ui, sans-serif; margin:0; color:var(--accent); }
+  main { max-width: 760px; margin: 0 auto; padding: 0 20px 55vh; font-size: 23px; line-height: 1.65; }
+  h2 { font: 700 19px/1.4 -apple-system, system-ui, sans-serif; letter-spacing:.06em; margin: 1.4em 0 .4em; }
+  p { margin: 0 0 .8em; }
+  ul { margin: 0 0 .8em; padding-left: 1.2em; }
+  li { margin-bottom: .45em; }
+  .pm { display:flex; align-items:center; gap:10px; margin: 1.6em 0 .8em; font: 600 13px/1 -apple-system, system-ui, sans-serif;
+        text-transform: uppercase; letter-spacing:.12em; color: var(--accent); }
+  .pm::before, .pm::after { content:""; flex:1; height:1px; background: currentColor; opacity:.35; }
+  .w { cursor:pointer; border-radius:5px; padding: 0 1px; transition: color .15s; }
+  .w.r, .x.r { color: var(--read); }
+  .w.cur { background: var(--hl); color: #111; box-shadow: 0 0 0 3px var(--hl); }
+  .bar { position: sticky; top: 0; z-index: 5; background: var(--bar); border-bottom: 1px solid rgba(127,127,127,.25);
+         box-shadow: 0 2px 10px rgba(0,0,0,.06); font-family: -apple-system, system-ui, sans-serif; }
+  .bar .in { max-width: 760px; margin: 0 auto; padding: 10px 16px; display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+  button { font: 600 16px/1 -apple-system, system-ui, sans-serif; border:1px solid rgba(127,127,127,.35); background:transparent;
+           color:var(--fg); border-radius: 999px; padding: 10px 14px; min-height:44px; cursor:pointer; }
+  #play { background: var(--accent); color: var(--bg); border-color: var(--accent); min-width: 92px; }
+  .speeds { display:flex; gap:4px; }
+  .speeds button { padding: 10px 10px; min-width: 50px; }
+  .speeds button.on { background: var(--fg); color: var(--bg); }
+  .prog { flex: 1 1 100%; display:flex; align-items:center; gap:10px; font-size: 13px; color: var(--read); }
+  .prog input { flex:1; accent-color: var(--accent); }
+  .nav { font: 600 15px/1.4 -apple-system, system-ui, sans-serif; margin: 0 0 6px; }
+  .nav a { color: var(--accent); text-decoration: none; }
+  .navb { margin-top: 2.5em; font: 600 18px/1.4 -apple-system, system-ui, sans-serif; }
+  .navb a { display:block; padding: 16px 18px; border:1px solid rgba(127,127,127,.35); border-radius: 14px; color: var(--accent); text-decoration:none; margin-bottom: 10px; }
+  .diag { font: italic 16px/1.4 -apple-system, system-ui, sans-serif; color: var(--read); margin: 0 0 1em; }
+  #follow { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); display:none; background: var(--accent);
+            color: var(--bg); border-color: var(--accent); box-shadow: 0 4px 14px rgba(0,0,0,.2); z-index: 6; }
+</style>
+</head>
+<body>
+<div class="bar"><div class="in">
+  <button id="play" aria-label="Play">▶ Play</button>
+  <button id="back" aria-label="Back 10 seconds">↺ 10</button>
+  <div class="speeds" id="speeds"></div>
+  <div class="prog"><span id="tcur">0:00</span><input id="seek" type="range" min="0" max="1000" value="0" aria-label="Seek"><span id="tdur">0:00</span></div>
+</div></div>
+<header><div class="nav"><a href="index.html">← All sections</a></div><h1>Working With Clients — The Design Process: How to Approach a Design Project</h1></header>
+<main id="text">
+<div class="pm" id="page-63"><span>Page 63</span></div>
+<h2><span class="w" data-i="0">THE</span> <span class="w" data-i="1">DESIGN</span> <span class="w" data-i="2">PROCESS</span></h2>
+<div class="pm" id="page-64"><span>Page 64</span></div>
+<p class="diag">Diagram page (not read aloud). See page 64 of the PDF.</p>
+<div class="pm" id="page-65"><span>Page 65</span></div>
+<h2><span class="w" data-i="3">HOW</span> <span class="w" data-i="4">TO</span> <span class="w" data-i="5">APPROACH</span> <span class="w" data-i="6">A</span> <span class="w" data-i="7">DESIGN</span> <span class="w" data-i="8">PROJECT</span></h2>
+<p><span class="w" data-i="9">Most</span> <span class="w" data-i="10">interior</span> <span class="w" data-i="11">designers</span> <span class="w" data-i="12">structure</span> <span class="w" data-i="13">their</span> <span class="w" data-i="14">work</span> <span class="w" data-i="15">in</span> <span class="w" data-i="16">key</span> <span class="w" data-i="17">phases,</span> <span class="w" data-i="18">including</span> <span class="w" data-i="19">pre-design</span> <span class="w" data-i="20">(briefing),</span> <span class="w" data-i="21">concept</span> <span class="w" data-i="22">design,</span> <span class="w" data-i="23">design</span> <span class="w" data-i="24">development;</span> <span class="w" data-i="25">construction</span> <span class="w" data-i="26">documentation;</span> <span class="w" data-i="27">tender;</span> <span class="w" data-i="28">construction/</span> <span class="w" data-i="29">design</span> <span class="w" data-i="30">management,</span> <span class="w" data-i="31">and</span> <span class="w" data-i="32">finally,</span> <span class="w" data-i="33">styling</span> <span class="w" data-i="34">if</span> <span class="w" data-i="35">required.</span></p>
+<p><span class="w" data-i="36">Although</span> <span class="w" data-i="37">every</span> <span class="w" data-i="38">project</span> <span class="w" data-i="39">is</span> <span class="w" data-i="40">different,</span> <span class="w" data-i="41">developing</span> <span class="w" data-i="42">a</span> <span class="w" data-i="43">consistent</span> <span class="w" data-i="44">approach</span> <span class="w" data-i="45">to</span> <span class="w" data-i="46">your</span> <span class="w" data-i="47">design</span> <span class="w" data-i="48">process</span> <span class="w" data-i="49">will</span> <span class="w" data-i="50">help</span> <span class="w" data-i="51">you</span> <span class="w" data-i="52">to</span> <span class="w" data-i="53">become</span> <span class="w" data-i="54">more</span> <span class="w" data-i="55">proficient</span> <span class="w" data-i="56">in</span> <span class="w" data-i="57">your</span> <span class="w" data-i="58">role</span> <span class="w" data-i="59">as</span> <span class="w" data-i="60">an</span> <span class="w" data-i="61">interior</span> <span class="w" data-i="62">designer.</span></p>
+<p><span class="w" data-i="63">We</span> <span class="w" data-i="64">recommend</span> <span class="w" data-i="65">following</span> <span class="w" data-i="66">the</span> <span class="w" data-i="67">below</span> <span class="w" data-i="68">process</span> <span class="w" data-i="69">when</span> <span class="w" data-i="70">working</span> <span class="w" data-i="71">with</span> <span class="w" data-i="72">a</span> <span class="w" data-i="73">new</span> <span class="w" data-i="74">client</span> <span class="w" data-i="75">and</span> <span class="w" data-i="76">setting</span> <span class="w" data-i="77">up</span> <span class="w" data-i="78">those</span> <span class="w" data-i="79">initial</span> <span class="w" data-i="80">meetings,</span> <span class="w" data-i="81">which</span> <span class="w" data-i="82">will</span> <span class="w" data-i="83">play</span> <span class="w" data-i="84">a</span> <span class="w" data-i="85">big</span> <span class="w" data-i="86">part</span> <span class="w" data-i="87">in</span> <span class="w" data-i="88">your</span> <span class="w" data-i="89">success</span> <span class="w" data-i="90">as</span> <span class="w" data-i="91">an</span> <span class="w" data-i="92">interior</span> <span class="w" data-i="93">designer.</span></p>
+<p><span class="w" data-i="94">Bear</span> <span class="w" data-i="95">in</span> <span class="w" data-i="96">mind</span> <span class="w" data-i="97">that</span> <span class="w" data-i="98">each</span> <span class="w" data-i="99">project</span> <span class="w" data-i="100">will</span> <span class="w" data-i="101">be</span> <span class="w" data-i="102">different,</span> <span class="w" data-i="103">and</span> <span class="w" data-i="104">over</span> <span class="w" data-i="105">time,</span> <span class="w" data-i="106">you</span> <span class="w" data-i="107">may</span> <span class="w" data-i="108">find</span> <span class="w" data-i="109">a</span> <span class="w" data-i="110">process</span> <span class="w" data-i="111">that</span> <span class="w" data-i="112">works</span> <span class="w" data-i="113">better</span> <span class="w" data-i="114">for</span> <span class="w" data-i="115">you.</span></p>
+<h2><span class="w" data-i="116">PHASE</span> <span class="w" data-i="117">1</span></h2>
+<h2><span class="w" data-i="118">PHASE</span> <span class="w" data-i="119">2</span></h2>
+<h2><span class="w" data-i="120">PHASE</span> <span class="w" data-i="121">3</span></h2>
+<h2><span class="w" data-i="122">DISCOVER</span></h2>
+<h2><span class="w" data-i="123">PLAN</span></h2>
+<h2><span class="w" data-i="124">IMPLEMENT</span></h2>
+<div class="navb"><a href="Phase-1-Discover.html">Next: Phase 1 – Discover →</a><a href="Professional-Practice-Principle.html">← Previous: Professional Practice Principle</a><a href="index.html">All sections</a></div>
+</main>
+<button id="follow">↓ Follow reading</button>
+<audio id="audio" preload="auto" src="https://files.catbox.moe/0cuw18.mp3"></audio>
+<script>
+(() => {
+  const T = [[0.175, 0.25], [0.25, 0.625], [0.625, 1.475], [2.975, 3.1], [3.1, 3.188], [3.188, 3.488], [3.488, 3.55], [3.55, 3.925], [3.925, 4.775], [5.825, 6.125], [6.125, 6.7], [6.7, 7.263], [7.263, 7.75], [7.75, 7.95], [7.95, 8.225], [8.225, 8.388], [8.388, 8.663], [8.663, 9.25], [9.3, 9.838], [9.838, 10.575], [10.625, 11.3], [11.438, 12.025], [12.025, 12.55], [12.6, 13.05], [13.05, 13.675], [13.75, 14.425], [14.425, 15.5], [15.613, 16.125], [16.2, 16.85], [16.85, 17.25], [17.25, 17.8], [17.85, 18.025], [18.025, 18.55], [18.637, 19.125], [19.125, 19.275], [19.275, 20.4], [21.125, 21.488], [21.488, 21.837], [21.837, 22.35], [22.35, 22.512], [22.512, 22.975], [23.05, 23.7], [23.7, 23.8], [23.8, 24.45], [24.45, 24.988], [24.988, 25.125], [25.125, 25.325], [25.325, 25.775], [25.775, 26.4], [26.4, 26.575], [26.575, 26.85], [26.85, 27.0], [27.0, 27.1], [27.1, 27.475], [27.475, 27.7], [27.7, 28.325], [28.325, 28.45], [28.45, 28.637], [28.637, 29.087], [29.087, 29.25], [29.25, 29.35], [29.35, 29.975], [29.975, 30.925], [31.625, 31.775], [31.775, 32.375], [32.375, 32.837], [32.837, 32.925], [32.925, 33.337], [33.337, 33.975], [33.975, 34.188], [34.188, 34.6], [34.6, 34.75], [34.75, 34.862], [34.862, 35.112], [35.112, 35.663], [35.663, 35.825], [35.825, 36.163], [36.163, 36.35], [36.35, 36.625], [36.625, 37.05], [37.05, 37.675], [37.75, 37.95], [37.95, 38.112], [38.112, 38.375], [38.375, 38.487], [38.487, 38.737], [38.737, 39.05], [39.05, 39.175], [39.175, 39.35], [39.35, 39.962], [39.962, 40.15], [40.15, 40.25], [40.25, 40.875], [40.875, 41.825], [42.5, 42.775], [42.775, 42.925], [42.925, 43.263], [43.263, 43.438], [43.438, 43.738], [43.738, 44.238], [44.238, 44.35], [44.35, 44.513], [44.513, 45.025], [45.1, 45.213], [45.213, 45.463], [45.463, 45.9], [45.975, 46.125], [46.125, 46.313], [46.313, 46.613], [46.613, 46.688], [46.688, 47.275], [47.275, 47.475], [47.475, 47.775], [47.775, 48.125], [48.125, 48.3], [48.3, 48.875], [49.525, 49.8], [49.8, 50.35], [51.275, 51.55], [51.55, 52.05], [53.0, 53.3], [53.3, 53.875], [54.8, 55.625], [56.55, 57.15], [58.075, 58.9]];            // [[start, end], ...] seconds, one per word span
+  const audio = document.getElementById('audio');
+  const words = Array.from(document.querySelectorAll('.w'));
+  const xs = Array.from(document.querySelectorAll('.x'));
+  if (words.length !== T.length) console.error('word/timing mismatch', words.length, T.length);
+  const playBtn = document.getElementById('play'), seek = document.getElementById('seek');
+  const tcur = document.getElementById('tcur'), tdur = document.getElementById('tdur'), followBtn = document.getElementById('follow');
+  const STORE = 'karaoke:' + document.title;
+  ['preservesPitch','mozPreservesPitch','webkitPreservesPitch'].forEach(k => { try { audio[k] = true; } catch(e){} });
+
+  // speed selector
+  const speeds = [1, 1.5, 2, 2.5, 3], box = document.getElementById('speeds');
+  let rate = parseFloat(localStorage.getItem(STORE + ':rate')) || 1;
+  function setRate(r) {
+    rate = r; audio.playbackRate = r; audio.defaultPlaybackRate = r;
+    ['preservesPitch','mozPreservesPitch','webkitPreservesPitch'].forEach(k => { try { audio[k] = true; } catch(e){} });
+    box.querySelectorAll('button').forEach(b => b.classList.toggle('on', parseFloat(b.dataset.r) === r));
+    try { localStorage.setItem(STORE + ':rate', r); } catch(e){}
+  }
+  speeds.forEach(r => { const b = document.createElement('button'); b.textContent = r + '×'; b.dataset.r = r;
+    b.onclick = () => setRate(r); box.appendChild(b); });
+  setRate(speeds.includes(rate) ? rate : 1);
+
+  // binary search: last word whose start <= t
+  function find(t) {
+    let lo = 0, hi = T.length - 1, ans = -1;
+    while (lo <= hi) { const m = (lo + hi) >> 1; if (T[m][0] <= t) { ans = m; lo = m + 1; } else hi = m - 1; }
+    return ans;
+  }
+  // map each non-word token (bullets, &, dashes) to the word index before it, for dimming
+  const xPrev = xs.map(x => { let n = x.previousElementSibling; while (n && !n.classList.contains('w')) n = n.previousElementSibling;
+    if (n) return +n.dataset.i; let p = x; while (p && !(p.nextElementSibling)) p = p.parentElement; return -1; });
+
+  let cur = -2, readUpTo = -1, follow = true, autoScrolling = false, lastLineTop = null;
+  function setRead(n) { // mark words [0, n) as read
+    if (n > readUpTo + 1) { for (let i = readUpTo + 1; i < n; i++) words[i].classList.add('r'); }
+    else if (n < readUpTo + 1) { for (let i = n; i <= readUpTo; i++) words[i].classList.remove('r'); }
+    readUpTo = n - 1;
+    xs.forEach((x, k) => x.classList.toggle('r', xPrev[k] >= 0 && xPrev[k] < n));
+  }
+  let xTimer = 0;
+  function show(i) {
+    if (i === cur) return;
+    if (cur >= 0 && words[cur]) words[cur].classList.remove('cur');
+    cur = i;
+    // dim words fully read (before current)
+    const n = Math.max(0, i);
+    if (Math.abs(n - (readUpTo + 1)) > 0) {
+      // cheap path for forward progress; xs update throttled
+      if (n > readUpTo + 1) { for (let k = readUpTo + 1; k < n; k++) words[k].classList.add('r'); readUpTo = n - 1;
+        const now = performance.now(); if (now - xTimer > 400) { xTimer = now; xs.forEach((x, k) => x.classList.toggle('r', xPrev[k] >= 0 && xPrev[k] < n)); } }
+      else setRead(n);
+    }
+    if (i >= 0 && words[i]) { words[i].classList.add('cur'); if (follow) scrollTo(words[i]); }
+  }
+  function scrollTo(el) {
+    const r = el.getBoundingClientRect();
+    const mid = window.innerHeight / 2;
+    if (lastLineTop !== null && Math.abs(r.top - lastLineTop) < 4 && Math.abs(r.top + r.height/2 - mid) < window.innerHeight * 0.2) return;
+    lastLineTop = r.top;
+    const target = window.scrollY + r.top + r.height / 2 - mid;
+    autoScrolling = true;
+    window.scrollTo({ top: target, behavior: rate >= 2 ? 'auto' : 'smooth' });
+    clearTimeout(scrollTo._t); scrollTo._t = setTimeout(() => { autoScrolling = false; lastLineTop = el.getBoundingClientRect().top; }, 450);
+  }
+  // pause auto-follow when the user scrolls by hand
+  const userScroll = () => { if (!autoScrolling && !audio.paused) { follow = false; followBtn.style.display = 'block'; } };
+  window.addEventListener('wheel', userScroll, { passive: true });
+  window.addEventListener('touchmove', userScroll, { passive: true });
+  followBtn.onclick = () => { follow = true; followBtn.style.display = 'none'; lastLineTop = null; if (cur >= 0) scrollTo(words[cur]); };
+
+  const fmt = s => { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+  let seeking = false;
+  function tick() {
+    const t = audio.currentTime;
+    show(find(t));
+    if (!seeking && audio.duration) seek.value = Math.round(1000 * t / audio.duration);
+    tcur.textContent = fmt(t / 1);
+    if (!audio.paused) requestAnimationFrame(tick);
+  }
+  audio.addEventListener('loadedmetadata', () => { tdur.textContent = fmt(audio.duration); const s = parseFloat(localStorage.getItem(STORE + ':pos'));
+    if (s > 0 && s < audio.duration - 1) { audio.currentTime = s; } tick(); });
+  audio.addEventListener('play', () => { playBtn.textContent = '❚❚ Pause'; audio.playbackRate = rate; requestAnimationFrame(tick); });
+  audio.addEventListener('pause', () => { playBtn.textContent = '▶ Play'; tick(); try { localStorage.setItem(STORE + ':pos', audio.currentTime); } catch(e){} });
+  audio.addEventListener('seeked', tick);
+  audio.addEventListener('ended', () => { try { localStorage.removeItem(STORE + ':pos'); } catch(e){} });
+  playBtn.onclick = () => { if (audio.paused) { audio.playbackRate = rate; audio.play(); } else audio.pause(); };
+  document.getElementById('back').onclick = () => { audio.currentTime = Math.max(0, audio.currentTime - 10); tick(); };
+  seek.addEventListener('input', () => { seeking = true; if (audio.duration) { audio.currentTime = audio.duration * seek.value / 1000; tick(); } });
+  seek.addEventListener('change', () => { seeking = false; });
+  document.getElementById('text').addEventListener('click', e => {
+    const w = e.target.closest('.w'); if (!w) return;
+    const i = +w.dataset.i; audio.currentTime = T[i][0] + 0.001; follow = true; followBtn.style.display = 'none'; lastLineTop = null;
+    show(i); if (audio.paused) { audio.playbackRate = rate; audio.play(); }
+  });
+  document.addEventListener('keydown', e => { if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); playBtn.click(); } });
+  setInterval(() => { if (!audio.paused) try { localStorage.setItem(STORE + ':pos', audio.currentTime); } catch(e){} }, 5000);
+  window.__karaoke = { T, words, find };
+})();
+</script>
+</body>
+</html>

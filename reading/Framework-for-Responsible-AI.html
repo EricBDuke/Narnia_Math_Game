@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Working With Clients — A Professional Framework for Responsible AI Use</title>
+<style>
+  :root { --bg:#fbfaf7; --fg:#22211f; --read:#a3a09a; --hl:#ffd54a; --accent:#2f5d50; --bar:#ffffff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#161615; --fg:#ecebe8; --read:#6c6a66; --hl:#c99a00; --accent:#8fc9b4; --bar:#202020; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; background:var(--bg); color:var(--fg); }
+  body { font-family: Georgia, "Iowan Old Style", "Times New Roman", serif; -webkit-text-size-adjust:100%; }
+  header { padding: 18px 20px 6px; max-width: 760px; margin: 0 auto; }
+  header h1 { font: 600 20px/1.3 -apple-system, system-ui, sans-serif; margin:0; color:var(--accent); }
+  main { max-width: 760px; margin: 0 auto; padding: 0 20px 55vh; font-size: 23px; line-height: 1.65; }
+  h2 { font: 700 19px/1.4 -apple-system, system-ui, sans-serif; letter-spacing:.06em; margin: 1.4em 0 .4em; }
+  p { margin: 0 0 .8em; }
+  ul { margin: 0 0 .8em; padding-left: 1.2em; }
+  li { margin-bottom: .45em; }
+  .pm { display:flex; align-items:center; gap:10px; margin: 1.6em 0 .8em; font: 600 13px/1 -apple-system, system-ui, sans-serif;
+        text-transform: uppercase; letter-spacing:.12em; color: var(--accent); }
+  .pm::before, .pm::after { content:""; flex:1; height:1px; background: currentColor; opacity:.35; }
+  .w { cursor:pointer; border-radius:5px; padding: 0 1px; transition: color .15s; }
+  .w.r, .x.r { color: var(--read); }
+  .w.cur { background: var(--hl); color: #111; box-shadow: 0 0 0 3px var(--hl); }
+  .bar { position: sticky; top: 0; z-index: 5; background: var(--bar); border-bottom: 1px solid rgba(127,127,127,.25);
+         box-shadow: 0 2px 10px rgba(0,0,0,.06); font-family: -apple-system, system-ui, sans-serif; }
+  .bar .in { max-width: 760px; margin: 0 auto; padding: 10px 16px; display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+  button { font: 600 16px/1 -apple-system, system-ui, sans-serif; border:1px solid rgba(127,127,127,.35); background:transparent;
+           color:var(--fg); border-radius: 999px; padding: 10px 14px; min-height:44px; cursor:pointer; }
+  #play { background: var(--accent); color: var(--bg); border-color: var(--accent); min-width: 92px; }
+  .speeds { display:flex; gap:4px; }
+  .speeds button { padding: 10px 10px; min-width: 50px; }
+  .speeds button.on { background: var(--fg); color: var(--bg); }
+  .prog { flex: 1 1 100%; display:flex; align-items:center; gap:10px; font-size: 13px; color: var(--read); }
+  .prog input { flex:1; accent-color: var(--accent); }
+  .nav { font: 600 15px/1.4 -apple-system, system-ui, sans-serif; margin: 0 0 6px; }
+  .nav a { color: var(--accent); text-decoration: none; }
+  .navb { margin-top: 2.5em; font: 600 18px/1.4 -apple-system, system-ui, sans-serif; }
+  .navb a { display:block; padding: 16px 18px; border:1px solid rgba(127,127,127,.35); border-radius: 14px; color: var(--accent); text-decoration:none; margin-bottom: 10px; }
+  .diag { font: italic 16px/1.4 -apple-system, system-ui, sans-serif; color: var(--read); margin: 0 0 1em; }
+  #follow { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); display:none; background: var(--accent);
+            color: var(--bg); border-color: var(--accent); box-shadow: 0 4px 14px rgba(0,0,0,.2); z-index: 6; }
+</style>
+</head>
+<body>
+<div class="bar"><div class="in">
+  <button id="play" aria-label="Play">▶ Play</button>
+  <button id="back" aria-label="Back 10 seconds">↺ 10</button>
+  <div class="speeds" id="speeds"></div>
+  <div class="prog"><span id="tcur">0:00</span><input id="seek" type="range" min="0" max="1000" value="0" aria-label="Seek"><span id="tdur">0:00</span></div>
+</div></div>
+<header><div class="nav"><a href="index.html">← All sections</a></div><h1>Working With Clients — A Professional Framework for Responsible AI Use</h1></header>
+<main id="text">
+<div class="pm" id="page-61"><span>Page 61</span></div>
+<h2><span class="w" data-i="0">A</span> <span class="w" data-i="1">PROFESSIONAL</span> <span class="w" data-i="2">FRAMEWORK</span> <span class="w" data-i="3">FOR</span> <span class="w" data-i="4">RESPONSIBLE</span> <span class="w" data-i="5">AI</span> <span class="w" data-i="6">USE</span></h2>
+<p><span class="w" data-i="7">Before</span> <span class="w" data-i="8">using</span> <span class="w" data-i="9">AI</span> <span class="w" data-i="10">during</span> <span class="w" data-i="11">an</span> <span class="w" data-i="12">interior</span> <span class="w" data-i="13">design</span> <span class="w" data-i="14">project,</span> <span class="w" data-i="15">designers</span> <span class="w" data-i="16">can</span> <span class="w" data-i="17">apply</span> <span class="w" data-i="18">five</span> <span class="w" data-i="19">questions:</span></p>
+<h2><span class="w" data-i="20">1.</span> <span class="w" data-i="21">APPROPRIATE</span></h2>
+<p><span class="w" data-i="22">Should</span> <span class="w" data-i="23">AI</span> <span class="w" data-i="24">be</span> <span class="w" data-i="25">used</span> <span class="w" data-i="26">for</span> <span class="w" data-i="27">this</span> <span class="w" data-i="28">task?</span></p>
+<p><span class="w" data-i="29">Consider</span> <span class="w" data-i="30">whether</span> <span class="w" data-i="31">the</span> <span class="w" data-i="32">task</span> <span class="w" data-i="33">involves</span> <span class="w" data-i="34">confidential,</span> <span class="w" data-i="35">culturally</span> <span class="w" data-i="36">sensitive,</span> <span class="w" data-i="37">safety-critical</span> <span class="w" data-i="38">or</span> <span class="w" data-i="39">otherwise</span> <span class="w" data-i="40">sensitive</span> <span class="w" data-i="41">information.</span></p>
+<h2><span class="w" data-i="42">2.</span> <span class="w" data-i="43">PROTECT</span></h2>
+<p><span class="w" data-i="44">What</span> <span class="w" data-i="45">information</span> <span class="w" data-i="46">am</span> <span class="w" data-i="47">I</span> <span class="w" data-i="48">providing</span> <span class="w" data-i="49">to</span> <span class="w" data-i="50">the</span> <span class="w" data-i="51">AI</span> <span class="w" data-i="52">system?</span></p>
+<p><span class="w" data-i="53">Remove</span> <span class="w" data-i="54">or</span> <span class="w" data-i="55">protect</span> <span class="w" data-i="56">confidential,</span> <span class="w" data-i="57">personal</span> <span class="w" data-i="58">and</span> <span class="w" data-i="59">commercially</span> <span class="w" data-i="60">sensitive</span> <span class="w" data-i="61">information</span> <span class="w" data-i="62">where</span> <span class="w" data-i="63">required.</span></p>
+<h2><span class="w" data-i="64">3.</span> <span class="w" data-i="65">QUESTION</span></h2>
+<p><span class="w" data-i="66">What</span> <span class="w" data-i="67">assumptions</span> <span class="w" data-i="68">or</span> <span class="w" data-i="69">errors</span> <span class="w" data-i="70">might</span> <span class="w" data-i="71">be</span> <span class="w" data-i="72">contained</span> <span class="w" data-i="73">in</span> <span class="w" data-i="74">the</span> <span class="w" data-i="75">output?</span></p>
+<p><span class="w" data-i="76">Examine</span> <span class="w" data-i="77">the</span> <span class="w" data-i="78">response</span> <span class="w" data-i="79">critically</span> <span class="w" data-i="80">rather</span> <span class="w" data-i="81">than</span> <span class="w" data-i="82">accepting</span> <span class="w" data-i="83">it</span> <span class="w" data-i="84">because</span> <span class="w" data-i="85">it</span> <span class="w" data-i="86">appears</span> <span class="w" data-i="87">convincing.</span></p>
+<h2><span class="w" data-i="88">4.</span> <span class="w" data-i="89">VERIFY</span></h2>
+<p><span class="w" data-i="90">What</span> <span class="w" data-i="91">information</span> <span class="w" data-i="92">needs</span> <span class="w" data-i="93">to</span> <span class="w" data-i="94">be</span> <span class="w" data-i="95">checked</span> <span class="w" data-i="96">independently?</span></p>
+<p><span class="w" data-i="97">Verify</span> <span class="w" data-i="98">technical,</span> <span class="w" data-i="99">regulatory,</span> <span class="w" data-i="100">product,</span> <span class="w" data-i="101">environmental</span> <span class="w" data-i="102">and</span> <span class="w" data-i="103">other</span> <span class="w" data-i="104">consequential</span> <span class="w" data-i="105">information</span> <span class="w" data-i="106">using</span> <span class="w" data-i="107">appropriate</span> <span class="w" data-i="108">authoritative</span> <span class="w" data-i="109">sources.</span></p>
+<h2><span class="w" data-i="110">5.</span> <span class="w" data-i="111">DISCLOSE</span></h2>
+<p><span class="w" data-i="112">Could</span> <span class="w" data-i="113">someone</span> <span class="w" data-i="114">misunderstand</span> <span class="w" data-i="115">how</span> <span class="w" data-i="116">this</span> <span class="w" data-i="117">material</span> <span class="w" data-i="118">was</span> <span class="w" data-i="119">produced</span> <span class="w" data-i="120">or</span> <span class="w" data-i="121">what</span> <span class="w" data-i="122">it</span> <span class="w" data-i="123">represents?</span></p>
+<p><span class="w" data-i="124">Clearly</span> <span class="w" data-i="125">identify</span> <span class="w" data-i="126">AI-assisted</span> <span class="w" data-i="127">or</span> <span class="w" data-i="128">conceptual</span> <span class="w" data-i="129">material</span> <span class="w" data-i="130">where</span> <span class="w" data-i="131">disclosure</span> <span class="w" data-i="132">is</span> <span class="w" data-i="133">appropriate,</span> <span class="w" data-i="134">particularly</span> <span class="w" data-i="135">when</span> <span class="w" data-i="136">realistic</span> <span class="w" data-i="137">imagery</span> <span class="w" data-i="138">could</span> <span class="w" data-i="139">be</span> <span class="w" data-i="140">mistaken</span> <span class="w" data-i="141">for</span> <span class="w" data-i="142">a</span> <span class="w" data-i="143">resolved</span> <span class="w" data-i="144">design.</span></p>
+<div class="navb"><a href="Professional-Practice-Principle.html">Next: Professional Practice Principle →</a><a href="AI-Responsibilities.html">← Previous: Professional, Ethical and Legal Responsibilities When Using AI</a><a href="index.html">All sections</a></div>
+</main>
+<button id="follow">↓ Follow reading</button>
+<audio id="audio" preload="auto" src="https://files.catbox.moe/hd82jm.mp3"></audio>
+<script>
+(() => {
+  const T = [[0.175, 0.225], [0.225, 0.8], [0.8, 1.275], [1.275, 1.425], [1.425, 2.188], [2.188, 2.575], [2.575, 3.225], [4.1, 4.475], [4.475, 4.875], [4.875, 5.438], [5.438, 5.738], [5.738, 5.825], [5.825, 6.425], [6.425, 6.875], [6.875, 7.525], [7.625, 8.2], [8.2, 8.35], [8.35, 8.725], [8.725, 9.1], [9.1, 10.05], [10.675, 10.85], [10.9, 11.8], [12.725, 12.85], [12.85, 13.162], [13.162, 13.3], [13.3, 13.512], [13.512, 13.612], [13.612, 13.8], [13.8, 14.5], [15.2, 15.725], [15.725, 15.987], [15.987, 16.112], [16.112, 16.6], [16.6, 17.137], [17.137, 18.05], [18.162, 18.837], [18.837, 19.5], [19.612, 20.537], [20.537, 20.712], [20.712, 21.35], [21.35, 21.887], [21.887, 22.95], [23.575, 23.75], [23.75, 24.5], [25.4, 25.537], [25.537, 26.237], [26.237, 26.375], [26.375, 26.55], [26.55, 27.05], [27.05, 27.137], [27.137, 27.287], [27.287, 27.65], [27.65, 28.375], [29.025, 29.562], [29.562, 29.725], [29.725, 30.237], [30.237, 31.15], [31.262, 31.875], [31.875, 32.0], [32.0, 32.662], [32.662, 33.162], [33.162, 33.8], [33.8, 34.0], [34.0, 35.025], [35.675, 35.9], [35.95, 36.75], [37.675, 37.812], [37.812, 38.375], [38.375, 38.538], [38.538, 39.025], [39.025, 39.212], [39.212, 39.35], [39.35, 39.862], [39.862, 39.938], [39.938, 40.05], [40.05, 40.825], [41.5, 42.05], [42.05, 42.15], [42.15, 42.788], [42.788, 43.363], [43.363, 43.75], [43.75, 43.875], [43.875, 44.45], [44.45, 44.6], [44.6, 44.925], [44.925, 45.025], [45.025, 45.5], [45.5, 46.525], [47.15, 47.375], [47.375, 48.2], [49.125, 49.263], [49.263, 49.9], [49.9, 50.2], [50.2, 50.288], [50.288, 50.438], [50.438, 50.8], [50.8, 51.825], [52.525, 53.063], [53.063, 53.7], [53.813, 54.675], [54.763, 55.35], [55.425, 56.338], [56.338, 56.488], [56.488, 56.813], [56.813, 57.65], [57.65, 58.338], [58.338, 58.725], [58.725, 59.35], [59.35, 60.113], [60.113, 61.075], [61.7, 61.95], [61.988, 62.85], [63.775, 63.963], [63.963, 64.35], [64.35, 65.225], [65.225, 65.425], [65.425, 65.625], [65.625, 66.225], [66.225, 66.4], [66.4, 67.1], [67.1, 67.313], [67.313, 67.488], [67.488, 67.575], [67.575, 68.55], [69.225, 69.713], [69.713, 70.463], [70.463, 71.463], [71.463, 71.65], [71.65, 72.375], [72.375, 73.05], [73.05, 73.25], [73.25, 73.95], [73.95, 74.1], [74.1, 74.95], [75.05, 75.825], [75.825, 76.038], [76.038, 76.663], [76.663, 77.2], [77.2, 77.325], [77.325, 77.475], [77.475, 78.15], [78.15, 78.325], [78.325, 78.425], [78.425, 79.05], [79.05, 80.05]];            // [[start, end], ...] seconds, one per word span
+  const audio = document.getElementById('audio');
+  const words = Array.from(document.querySelectorAll('.w'));
+  const xs = Array.from(document.querySelectorAll('.x'));
+  if (words.length !== T.length) console.error('word/timing mismatch', words.length, T.length);
+  const playBtn = document.getElementById('play'), seek = document.getElementById('seek');
+  const tcur = document.getElementById('tcur'), tdur = document.getElementById('tdur'), followBtn = document.getElementById('follow');
+  const STORE = 'karaoke:' + document.title;
+  ['preservesPitch','mozPreservesPitch','webkitPreservesPitch'].forEach(k => { try { audio[k] = true; } catch(e){} });
+
+  // speed selector
+  const speeds = [1, 1.5, 2, 2.5, 3], box = document.getElementById('speeds');
+  let rate = parseFloat(localStorage.getItem(STORE + ':rate')) || 1;
+  function setRate(r) {
+    rate = r; audio.playbackRate = r; audio.defaultPlaybackRate = r;
+    ['preservesPitch','mozPreservesPitch','webkitPreservesPitch'].forEach(k => { try { audio[k] = true; } catch(e){} });
+    box.querySelectorAll('button').forEach(b => b.classList.toggle('on', parseFloat(b.dataset.r) === r));
+    try { localStorage.setItem(STORE + ':rate', r); } catch(e){}
+  }
+  speeds.forEach(r => { const b = document.createElement('button'); b.textContent = r + '×'; b.dataset.r = r;
+    b.onclick = () => setRate(r); box.appendChild(b); });
+  setRate(speeds.includes(rate) ? rate : 1);
+
+  // binary search: last word whose start <= t
+  function find(t) {
+    let lo = 0, hi = T.length - 1, ans = -1;
+    while (lo <= hi) { const m = (lo + hi) >> 1; if (T[m][0] <= t) { ans = m; lo = m + 1; } else hi = m - 1; }
+    return ans;
+  }
+  // map each non-word token (bullets, &, dashes) to the word index before it, for dimming
+  const xPrev = xs.map(x => { let n = x.previousElementSibling; while (n && !n.classList.contains('w')) n = n.previousElementSibling;
+    if (n) return +n.dataset.i; let p = x; while (p && !(p.nextElementSibling)) p = p.parentElement; return -1; });
+
+  let cur = -2, readUpTo = -1, follow = true, autoScrolling = false, lastLineTop = null;
+  function setRead(n) { // mark words [0, n) as read
+    if (n > readUpTo + 1) { for (let i = readUpTo + 1; i < n; i++) words[i].classList.add('r'); }
+    else if (n < readUpTo + 1) { for (let i = n; i <= readUpTo; i++) words[i].classList.remove('r'); }
+    readUpTo = n - 1;
+    xs.forEach((x, k) => x.classList.toggle('r', xPrev[k] >= 0 && xPrev[k] < n));
+  }
+  let xTimer = 0;
+  function show(i) {
+    if (i === cur) return;
+    if (cur >= 0 && words[cur]) words[cur].classList.remove('cur');
+    cur = i;
+    // dim words fully read (before current)
+    const n = Math.max(0, i);
+    if (Math.abs(n - (readUpTo + 1)) > 0) {
+      // cheap path for forward progress; xs update throttled
+      if (n > readUpTo + 1) { for (let k = readUpTo + 1; k < n; k++) words[k].classList.add('r'); readUpTo = n - 1;
+        const now = performance.now(); if (now - xTimer > 400) { xTimer = now; xs.forEach((x, k) => x.classList.toggle('r', xPrev[k] >= 0 && xPrev[k] < n)); } }
+      else setRead(n);
+    }
+    if (i >= 0 && words[i]) { words[i].classList.add('cur'); if (follow) scrollTo(words[i]); }
+  }
+  function scrollTo(el) {
+    const r = el.getBoundingClientRect();
+    const mid = window.innerHeight / 2;
+    if (lastLineTop !== null && Math.abs(r.top - lastLineTop) < 4 && Math.abs(r.top + r.height/2 - mid) < window.innerHeight * 0.2) return;
+    lastLineTop = r.top;
+    const target = window.scrollY + r.top + r.height / 2 - mid;
+    autoScrolling = true;
+    window.scrollTo({ top: target, behavior: rate >= 2 ? 'auto' : 'smooth' });
+    clearTimeout(scrollTo._t); scrollTo._t = setTimeout(() => { autoScrolling = false; lastLineTop = el.getBoundingClientRect().top; }, 450);
+  }
+  // pause auto-follow when the user scrolls by hand
+  const userScroll = () => { if (!autoScrolling && !audio.paused) { follow = false; followBtn.style.display = 'block'; } };
+  window.addEventListener('wheel', userScroll, { passive: true });
+  window.addEventListener('touchmove', userScroll, { passive: true });
+  followBtn.onclick = () => { follow = true; followBtn.style.display = 'none'; lastLineTop = null; if (cur >= 0) scrollTo(words[cur]); };
+
+  const fmt = s => { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+  let seeking = false;
+  function tick() {
+    const t = audio.currentTime;
+    show(find(t));
+    if (!seeking && audio.duration) seek.value = Math.round(1000 * t / audio.duration);
+    tcur.textContent = fmt(t / 1);
+    if (!audio.paused) requestAnimationFrame(tick);
+  }
+  audio.addEventListener('loadedmetadata', () => { tdur.textContent = fmt(audio.duration); const s = parseFloat(localStorage.getItem(STORE + ':pos'));
+    if (s > 0 && s < audio.duration - 1) { audio.currentTime = s; } tick(); });
+  audio.addEventListener('play', () => { playBtn.textContent = '❚❚ Pause'; audio.playbackRate = rate; requestAnimationFrame(tick); });
+  audio.addEventListener('pause', () => { playBtn.textContent = '▶ Play'; tick(); try { localStorage.setItem(STORE + ':pos', audio.currentTime); } catch(e){} });
+  audio.addEventListener('seeked', tick);
+  audio.addEventListener('ended', () => { try { localStorage.removeItem(STORE + ':pos'); } catch(e){} });
+  playBtn.onclick = () => { if (audio.paused) { audio.playbackRate = rate; audio.play(); } else audio.pause(); };
+  document.getElementById('back').onclick = () => { audio.currentTime = Math.max(0, audio.currentTime - 10); tick(); };
+  seek.addEventListener('input', () => { seeking = true; if (audio.duration) { audio.currentTime = audio.duration * seek.value / 1000; tick(); } });
+  seek.addEventListener('change', () => { seeking = false; });
+  document.getElementById('text').addEventListener('click', e => {
+    const w = e.target.closest('.w'); if (!w) return;
+    const i = +w.dataset.i; audio.currentTime = T[i][0] + 0.001; follow = true; followBtn.style.display = 'none'; lastLineTop = null;
+    show(i); if (audio.paused) { audio.playbackRate = rate; audio.play(); }
+  });
+  document.addEventListener('keydown', e => { if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); playBtn.click(); } });
+  setInterval(() => { if (!audio.paused) try { localStorage.setItem(STORE + ':pos', audio.currentTime); } catch(e){} }, 5000);
+  window.__karaoke = { T, words, find };
+})();
+</script>
+</body>
+</html>
